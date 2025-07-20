@@ -3,5 +3,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/exporters" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/notebooks/llama.cpp" vcs="Git" />
   </component>
 </project>
