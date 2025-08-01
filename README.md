@@ -2,18 +2,20 @@
 
 ## Project Summary
 
-**noesisnoema-pipeline** is an open-source pipeline for building Retrieval-Augmented Generation (RAG) and Large Language Model (LLM) workflows. It provides a modular toolkit for tokenizing, chunking, and embedding textual data, optimized for use in Google Colab environments. The project is part of the **NoesisNoema** brand, emphasizing clarity, transparency, and extensibility in AI tooling.
+**noesisnoema-pipeline** is an open-source, actively evolving pipeline for building Retrieval-Augmented Generation (RAG) and Large Language Model (LLM) workflows. It provides modular tools primarily focused on two main Google Colab notebook workflows: creating "chunks & embeddings" from documents for RAGpack generation, and converting models to the GGUF format, which is now the primary standard for RAGfish/NoesisNoema-based applications. 
 
-The pipeline is designed for seamless cloud-based workflows, focusing on reproducibility, automation, and best practices using notebook cells.
+The legacy tokenizer archive workflow remains available for reference and reproducibility but is no longer the main focus. Additionally, a CoreML export workflow (via the exporters submodule) is retained as an experimental and optional feature for iOS/Apple ML use cases.
+
+This repository is an active work-in-progress, intended to evolve alongside the latest LLM and RAG community best practices.
 
 ---
 
 ## Features
 
-- **RAG/LLM Preprocessing:** Tokenize, chunk, and embed text data for downstream use in RAG and LLM pipelines.
-- **Google Colab Optimized:** All workflows are designed to run smoothly in Colab notebooks.
-- **CoreML Exporters Included:** Export models for iOS app use via CoreML using the HuggingFace exporters submodule.
-- **Extensible:** Modular codebase designed for easy customization and integration.
+- **Primary: Chunks & Embeddings Notebook:** Create tokenized chunks and embeddings from documents to generate RAGpacks for retrieval-augmented workflows.
+- **Primary: GGUF Conversion Notebook:** Convert LLM models to the GGUF format, the new standard for RAGfish and NoesisNoema pipeline integration.
+- **Secondary: Legacy Tokenizer/Archive Workflow:** Tokenize and archive text data for compatibility and reproducibility; maintained for historical reference.
+- **Experimental: CoreML Model Export:** Export models to CoreML format for iOS app use via the HuggingFace exporters submodule (optional and not required for mainline workflows).
 
 ---
 
@@ -28,8 +30,8 @@ noesisnoema-pipeline/
 └── .gitignore           # Git ignore rules
 ```
 
-- **notebooks/**: Example Colab notebooks for demonstration and prototyping.
-- **exporters/**: HuggingFace exporters submodule for CoreML model export for iOS.
+- **notebooks/**: Example Colab notebooks for demonstration and prototyping of primary workflows (chunks & embeddings, GGUF conversion) and legacy tokenizer/archive usage.
+- **exporters/**: HuggingFace exporters submodule for optional CoreML model export targeting iOS.
 - **exported/**: Directory for storing exported models and assets; included as an empty folder in the repo (with a `.gitkeep` file).
 
 ---
@@ -39,6 +41,7 @@ noesisnoema-pipeline/
 ### Requirements
 
 - **Google Colab**: The recommended environment for all workflows.
+- Note: This repository is under active development and its structure and workflows may change as the LLM and RAG ecosystem evolves.
 
 ### Installation
 
@@ -54,9 +57,23 @@ git submodule update --init --recursive
 
 ## Usage in Google Colab
 
-### 1. Tokenizing Text Data
+This repository provides two primary Colab notebook workflows for common RAG and LLM pipeline needs:
 
-In a notebook cell, import and use the tokenizer as needed for your own data sources:
+### 1. Creating Chunks & Embeddings (RAGpack Generation)
+
+Use the dedicated notebook to process your documents into tokenized chunks and generate embeddings suitable for retrieval-augmented generation workflows. This is the primary recommended approach for preparing textual data.
+
+### 2. Converting Models to GGUF Format (Model Preparation)
+
+The GGUF conversion notebook handles converting LLM models into the GGUF format, which is now the main standard for RAGfish and NoesisNoema-based applications. This workflow is the current focus for model preparation and pipeline development.
+
+---
+
+### Legacy: Tokenizer Archive Workflow
+
+The tokenizer archive workflow, which tokenizes and archives text data, remains available for reference and reproducibility but is considered legacy and secondary to the above workflows.
+
+Example usage of the legacy tokenizer:
 
 ```python
 from src.tokenizer import Tokenizer
@@ -65,20 +82,13 @@ tokenizer = Tokenizer("bert-base-uncased")
 # Use tokenizer.tokenize_file() or tokenizer.tokenize_text() with your own input data
 ```
 
-### 2. Chunking and Embedding
+---
 
-Embed tokenized data as appropriate for your workflow:
+### Experimental & Optional: CoreML Model Export
 
-```python
-from src.embedder import Embedder
+The `exporters` submodule supports exporting models to CoreML format for iOS app use. This workflow is optional, experimental, and not required for the mainline pipeline.
 
-embedder = Embedder("sentence-transformers/all-MiniLM-L6-v2")
-# Use embedder.embed_file() or embedder.embed_text() with your own tokenized data
-```
-
-### 3. Exporting Models
-
-The `exporters` submodule is included specifically for exporting models to CoreML format for iOS app use. To export a model, use the CLI with a command like:
+Example export command:
 
 ```
 exporters export coreml --model meta-llama/Llama-3-8B-Instruct --task text-generation --output exported/llama3-8b-coreml
@@ -86,7 +96,7 @@ exporters export coreml --model meta-llama/Llama-3-8B-Instruct --task text-gener
 
 > **Note:** The `exported/` directory should exist prior to exporting and is included in this repository as an empty folder (with a `.gitkeep` file) to ensure proper version control.
 
-You can update the exporters submodule to the latest version with:
+You can update the exporters submodule with:
 
 ```bash
 cd exporters
@@ -100,6 +110,8 @@ For advanced exporting options and details, refer to HuggingFace's [transformers
 ## Best Practices for Colab
 
 - Use notebook cells for all processing and exporting steps.
+- Focus on the primary workflows: chunks & embeddings and GGUF conversion notebooks.
+- Use the legacy tokenizer/archive workflow only if needed for compatibility or reproducibility.
 - Organize your own data and files outside of this repository structure.
 - Avoid committing large or sensitive files; use `.gitignore` to exclude:
   
