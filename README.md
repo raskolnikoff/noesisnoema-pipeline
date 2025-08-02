@@ -12,7 +12,7 @@ This repository is an active work-in-progress, intended to evolve alongside the 
 
 ## Features
 
-- **Primary: Chunks & Embeddings Notebook:** Create tokenized chunks and embeddings from documents to generate RAGpacks for retrieval-augmented workflows.
+- **Primary: Chunks & Embeddings Notebook:** Create tokenized chunks and embeddings from documents to generate RAGpacks for retrieval-augmented workflows. Every RAGpack (.zip) now includes both `embeddings.npy` **and** `embeddings.csv` files. The CSV output improves cross-platform compatibility, especially for Apple ecosystem projects such as those targeting Swift, macOS, and iOS.
 - **Primary: GGUF Conversion Notebook:** Convert LLM models to the GGUF format, the new standard for RAGfish and NoesisNoema pipeline integration.
 - **Secondary: Legacy Tokenizer/Archive Workflow:** Tokenize and archive text data for compatibility and reproducibility; maintained for historical reference.
 - **Experimental: CoreML Model Export:** Export models to CoreML format for iOS app use via the HuggingFace exporters submodule (optional and not required for mainline workflows).
@@ -62,6 +62,16 @@ This repository provides two primary Colab notebook workflows for common RAG and
 ### 1. Creating Chunks & Embeddings (RAGpack Generation)
 
 Use the dedicated notebook to process your documents into tokenized chunks and generate embeddings suitable for retrieval-augmented generation workflows. This is the primary recommended approach for preparing textual data.
+
+**RAGpack Output Format:** Every RAGpack `.zip` file now includes the following files:
+
+- `chunks.json`: The tokenized text chunks.
+- `embeddings.npy`: The embeddings in NumPy binary format.
+- `embeddings.csv`: The embeddings in CSV format.
+
+- `metadata.json`: Metadata associated with the chunks and embeddings.
+
+The inclusion of `embeddings.csv` is intentional to provide easier integration with Swift, macOS, iOS, and other platforms where CSV is more broadly supported than `.npy` files.
 
 ### 2. Converting Models to GGUF Format (Model Preparation)
 
