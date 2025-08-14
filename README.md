@@ -1,166 +1,155 @@
 # noesisnoema-pipeline
 
-## Project Summary
+## Overview (Updated 2025-06)
+**noesisnoema-pipeline** is a minimal, practical pipeline for:
 
-**noesisnoema-pipeline** is an open-source, actively evolving pipeline for building Retrieval-Augmented Generation (RAG) and Large Language Model (LLM) workflows. It provides modular tools primarily focused on two main Google Colab notebook workflows: creating "chunks & embeddings" from documents for RAGpack generation, and converting models to the GGUF format, which is now the primary standard for RAGfish/NoesisNoema-based applications. 
+1) **Fetching GGUF LLMs via the Hugging Face CLI** – to run with llama.cpp–compatible runtimes on iOS/desktop/server.
+2) **Building a RAGpack (chunks + embeddings)** – split documents, embed them, and ship as a `.zip` your apps can load.
 
-The legacy tokenizer archive workflow remains available for reference and reproducibility but is no longer the main focus. Additionally, a CoreML export workflow (via the exporters submodule) is retained as an experimental and optional feature for iOS/Apple ML use cases.
-
-This repository is an active work-in-progress, intended to evolve alongside the latest LLM and RAG community best practices.
-
----
-
-## Features
-
-- **Primary: Chunks & Embeddings Notebook:** Create tokenized chunks and embeddings from documents to generate RAGpacks for retrieval-augmented workflows. Every RAGpack (.zip) now includes both `embeddings.npy` **and** `embeddings.csv` files. The CSV output improves cross-platform compatibility, especially for Apple ecosystem projects such as those targeting Swift, macOS, and iOS.
-- **Primary: GGUF Conversion Notebook:** Convert LLM models to the GGUF format, the new standard for RAGfish and NoesisNoema pipeline integration.
-- **Secondary: Legacy Tokenizer/Archive Workflow:** Tokenize and archive text data for compatibility and reproducibility; maintained for historical reference.
-- **Experimental: CoreML Model Export:** Export models to CoreML format for iOS app use via the HuggingFace exporters submodule (optional and not required for mainline workflows).
+> Legacy CoreML conversion and tokenizer archive steps were removed to avoid confusion. If you still need them, check historical branches.
 
 ---
 
-## Directory Structure
+## What you can do here
+- Safely download **GGUF** (often quantized) community models from Hugging Face.
+- Produce a **RAGpack** (`chunks.json`, `embeddings.npy`, `embeddings.csv`, `metadata.json`).
+- (Optional) Execute the same workflow on **Google Colab** using our helper notebook.
 
+---
+
+## Step‑by‑step
+
+### 0) Requirements
+- macOS / Linux (Windows works best via WSL)
+- Python 3.10+ (CLI usage also works on 3.8+)
+- `git`
+
+### 1) Hugging Face account & access token
+1. Create an account: https://huggingface.co/join  
+2. Issue a token: **Settings → Access Tokens → New token**  
+   - **Role**: *Read*  
+   - Prefer **Fine‑grained** and enable **Gated repos: Read** (required for Meta Llama and other gated repos).
+3. For gated models, visit the model page and **Accept** the license/usage policy.
+
+### 2) Install the CLI and log in
+```bash
+python -m pip install -U "huggingface_hub[cli]"
+# or, if you prefer pipx
+# pipx install 'huggingface_hub[cli]'
+
+huggingface-cli login    # paste your token when prompted
+huggingface-cli whoami   # sanity check
+```
+
+> For faster downloads, enable the HF Transfer extension:
+> ```bash
+> python -m pip install -U hf_transfer
+> export HF_HUB_ENABLE_HF_TRANSFER=1
+> ```
+
+### 3) Download a GGUF model (recommended: `huggingface-cli download`)
+**Basic form**
+```bash
+huggingface-cli download <repo_id> \
+  --include "*.gguf" \
+  --local-dir models/<your_model_dir>
+```
+
+Filter by a given quantization (example: **Q4_K_M** only):
+```bash
+huggingface-cli download <repo_id> \
+  --include "*Q4_K_M.gguf" \
+  --local-dir models/<your_model_dir>
+```
+
+**Examples**
+- **Jan v1 4B (GGUF)** – pick a repo that actually contains `.gguf` files (check the *Files* tab):
+```bash
+# Example placeholder; replace with a real GGUF repo if different
+huggingface-cli download janhq/Jan-v1-4B-GGUF-Q4_K_M \
+  --include "*Q4_K_M.gguf" \
+  --local-dir models/jan-v1-4b
+```
+
+- **TinyLlama (lightweight / quick check)**
+```bash
+# Example community GGUF repo
+huggingface-cli download TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF \
+  --include "*Q4_K_M.gguf" \
+  --local-dir models/tinyllama-1.1b
+```
+
+**Verify**
+```bash
+ls -lh models/<your_model_dir>
+shasum -a 256 models/<your_model_dir>/*.gguf   # optional integrity check
+```
+
+> **Why the CLI over `git clone`?**  
+> Large LFS repos often include many artifacts you don’t need. `huggingface-cli download --include` pulls only what you ask for and avoids common failures/timeouts.
+
+### 4) Build a RAGpack (chunks + embeddings)
+Use the notebook under `notebooks/` to turn your documents into a self‑contained **RAGpack**. Output files:
+- `chunks.json` — split text
+- `embeddings.npy` — NumPy embeddings (fast to load)
+- `embeddings.csv` — CSV embeddings (easy to load from Swift/iOS, etc.)
+- `metadata.json`
+
+> RAGpack is model‑agnostic and independent of the GGUF download step.
+
+---
+
+## Optional: run on Google Colab
+You can do the same on Colab. We provide a helper notebook that includes a preset model selection dropdown with options for distilgpt2, llama3-8b, mistral, gemini, and jan-v1-4b. The notebook lists available `.gguf` files interactively, allows you to choose one, and lets you download files directly to a mounted Google Drive folder if desired.
+
+**Notebook**: `gguf_downloader_colab.ipynb`  
+Usage:
+1. Upload the notebook to Colab and run the first cell to install deps.
+2. (Optional) Mount Google Drive if you want to persist models.
+3. Log in with your HF token (fine‑grained, Read; enable *Gated repos: Read* if necessary).
+4. Pick a preset from the dropdown or type an exact `repo_id`.
+5. The notebook lists `.gguf` files → choose one → **Download** directly to your mounted Drive or local Colab storage.
+
+---
+
+## Troubleshooting
+- **403 Forbidden (gated)**: Accept the license on the model page and ensure your token allows **Gated repos: Read**.
+- **Nothing downloads / 404**: Double‑check `repo_id` and make sure the repo actually contains `.gguf` files.
+- **Slow/unstable**: Install `hf_transfer` and set `HF_HUB_ENABLE_HF_TRANSFER=1`. Use `--resume-download` to continue interrupted downloads.
+- **Colab disk limits**: Mount Google Drive and set `--local-dir` to a Drive folder.
+
+---
+
+## Minimal repo layout
 ```
 noesisnoema-pipeline/
-├── notebooks/           # Colab notebooks demonstrating workflows
-├── exporters/           # HuggingFace exporters submodule for CoreML model export
-├── exported/            # Exported models and assets (empty folder included with .gitkeep)
-├── README.md            # Project documentation
-└── .gitignore           # Git ignore rules
+├── notebooks/            # RAGpack notebook(s), Colab‑friendly
+├── exported/             # Artifacts (kept empty; has a `.gitkeep`)
+├── README.md
+└── .gitignore
 ```
 
-- **notebooks/**: Example Colab notebooks for demonstration and prototyping of primary workflows (chunks & embeddings, GGUF conversion) and legacy tokenizer/archive usage.
-- **exporters/**: HuggingFace exporters submodule for optional CoreML model export targeting iOS.
-- **exported/**: Directory for storing exported models and assets; included as an empty folder in the repo (with a `.gitkeep` file).
-
----
-
-## Setup
-
-### Requirements
-
-- **Google Colab**: The recommended environment for all workflows.
-- Note: This repository is under active development and its structure and workflows may change as the LLM and RAG ecosystem evolves.
-
-### Installation
-
-In a Colab notebook cell, clone the repository with submodules:
-
-```bash
-git clone --recurse-submodules https://github.com/NoesisNoema/noesisnoema-pipeline.git
-# Or, if already cloned:
-git submodule update --init --recursive
+`.gitignore` (excerpt):
 ```
-
----
-
-## Usage in Google Colab
-
-This repository provides two primary Colab notebook workflows for common RAG and LLM pipeline needs:
-
-### 1. Creating Chunks & Embeddings (RAGpack Generation)
-
-Use the dedicated notebook to process your documents into tokenized chunks and generate embeddings suitable for retrieval-augmented generation workflows. This is the primary recommended approach for preparing textual data.
-
-**RAGpack Output Format:** Every RAGpack `.zip` file now includes the following files:
-
-- `chunks.json`: The tokenized text chunks.
-- `embeddings.npy`: The embeddings in NumPy binary format.
-- `embeddings.csv`: The embeddings in CSV format.
-
-- `metadata.json`: Metadata associated with the chunks and embeddings.
-
-The inclusion of `embeddings.csv` is intentional to provide easier integration with Swift, macOS, iOS, and other platforms where CSV is more broadly supported than `.npy` files.
-
-### 2. Converting Models to GGUF Format (Model Preparation)
-
-The GGUF conversion notebook handles converting LLM models into the GGUF format, which is now the main standard for RAGfish and NoesisNoema-based applications. This workflow is the current focus for model preparation and pipeline development.
-
----
-
-### Legacy: Tokenizer Archive Workflow
-
-The tokenizer archive workflow, which tokenizes and archives text data, remains available for reference and reproducibility but is considered legacy and secondary to the above workflows.
-
-Example usage of the legacy tokenizer:
-
-```python
-from src.tokenizer import Tokenizer
-
-tokenizer = Tokenizer("bert-base-uncased")
-# Use tokenizer.tokenize_file() or tokenizer.tokenize_text() with your own input data
+__pycache__/
+.ipynb_checkpoints/
+*.pyc
+*.pyo
+.env
+.venv
+exported/
+models/
+*.npy
+*.jsonl
+.DS_Store
+*.log
 ```
-
----
-
-### Experimental & Optional: CoreML Model Export
-
-The `exporters` submodule supports exporting models to CoreML format for iOS app use. This workflow is optional, experimental, and not required for the mainline pipeline.
-
-Example export command:
-
-```
-exporters export coreml --model meta-llama/Llama-3-8B-Instruct --task text-generation --output exported/llama3-8b-coreml
-```
-
-> **Note:** The `exported/` directory should exist prior to exporting and is included in this repository as an empty folder (with a `.gitkeep` file) to ensure proper version control.
-
-You can update the exporters submodule with:
-
-```bash
-cd exporters
-git pull origin main
-```
-
-For advanced exporting options and details, refer to HuggingFace's [transformers CLI documentation](https://huggingface.co/docs/transformers/main/en/serialization).
-
----
-
-## Best Practices for Colab
-
-- Use notebook cells for all processing and exporting steps.
-- Focus on the primary workflows: chunks & embeddings and GGUF conversion notebooks.
-- Use the legacy tokenizer/archive workflow only if needed for compatibility or reproducibility.
-- Organize your own data and files outside of this repository structure.
-- Avoid committing large or sensitive files; use `.gitignore` to exclude:
-  
-  ```
-  __pycache__/
-  .ipynb_checkpoints/
-  *.pyc
-  *.pyo
-  .env
-  .venv
-  exported/
-  *.npy
-  *.jsonl
-  .DS_Store
-  *.log
-  ```
-
-- Regularly save your Colab notebooks and exported models.
-
----
-
-## Contribution
-
-Contributions are welcome! To contribute:
-
-1. Open an issue to discuss your idea or bug report.
-2. Fork the repository and create a new branch.
-3. Submit a pull request with clear documentation.
 
 ---
 
 ## License
-
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
-
----
+MIT License (see `LICENSE`). Each model retains its own license; always follow the model’s Hugging Face page.
 
 ## Acknowledgements
-
-- HuggingFace for their excellent Transformers and Datasets libraries.
-- The open-source AI community for inspiration and support.
-- All contributors to the NoesisNoema ecosystem.
+- Hugging Face and the OSS community.
+- All contributors to NoesisNoema / RAGfish.
