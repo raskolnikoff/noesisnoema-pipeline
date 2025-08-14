@@ -64,6 +64,13 @@ huggingface-cli download <repo_id> \
 
 **Examples**
 - **Jan v1 4B (GGUF)** – pick a repo that actually contains `.gguf` files (check the *Files* tab):
+
+  The fastest and recommended way is to log in to Hugging Face via your browser and download directly from the model page.
+
+  ![Hugging Face repo screenshot](docs/assets/huggingface_repo.png)
+
+  The Colab and CLI methods remain as alternatives for automation or remote environments.
+
 ```bash
 # Example placeholder; replace with a real GGUF repo if different
 huggingface-cli download janhq/Jan-v1-4B-GGUF-Q4_K_M \
