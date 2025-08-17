@@ -1,5 +1,10 @@
 # noesisnoema-pipeline
 
+[![GitHub release](https://img.shields.io/github/v/release/raskolnikoff/noesisnoema-pipeline)](https://github.com/raskolnikoff/noesisnoema-pipeline/releases)
+[![Platform](https://img.shields.io/badge/platform-Colab%20%7C%20CLI-blue)](#)
+[![Python](https://img.shields.io/badge/python-3.10%2B-yellow)](#)
+[![License](https://img.shields.io/github/license/raskolnikoff/noesisnoema-pipeline)](LICENSE)
+
 ## Overview (Updated 2025-06)
 **noesisnoema-pipeline** is a minimal, practical pipeline for:
 
