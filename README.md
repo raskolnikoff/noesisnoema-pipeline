@@ -3,7 +3,7 @@
 [![GitHub release](https://img.shields.io/github/v/release/raskolnikoff/noesisnoema-pipeline)](https://github.com/raskolnikoff/noesisnoema-pipeline/releases)
 [![Platform](https://img.shields.io/badge/platform-Colab%20%7C%20CLI-blue)](#)
 [![Python](https://img.shields.io/badge/python-3.10%2B-yellow)](#)
-[![License](https://img.shields.io/github/license/raskolnikoff/noesisnoema-pipeline)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## Overview (Updated 2025-06)
 **noesisnoema-pipeline** is a minimal, practical pipeline for:
@@ -147,15 +147,30 @@ __pycache__/
 .ipynb_checkpoints/
 *.pyc
 *.pyo
+*.pyd
 .env
 .venv
-exported/
-models/
-*.npy
-*.jsonl
 .DS_Store
 *.log
+*.csv
+*.npy
+*.jsonl
+*.gguf
+exported/
+models/
+dist/
+build/
 ```
+
+---
+
+## Legal Disclaimer
+
+This project provides tools (pipelines, utilities, and examples) for creating RAGpacks and experimenting with Retrieval‑Augmented Generation (RAG). **No copyrighted texts, PDFs, or derivative datasets are included in this repository.**
+
+Users are responsible for ensuring that their use of this project complies with applicable copyright and data‑protection laws in their jurisdiction. For example, creating embeddings from copyrighted works may be permissible for private research or experimentation (e.g., under "text and data mining" exceptions), but redistribution of the original texts or derived chunks is typically prohibited.
+
+This repository and its maintainers do not provide legal advice. Use at your own risk.
 
 ---
 
