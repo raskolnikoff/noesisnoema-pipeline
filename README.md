@@ -16,6 +16,9 @@
 ---
 
 ## What you can do here
+
+🎥 **Demo video**: [Watch on YouTube](https://youtu.be/XT_cp066NRE)
+
 - Safely download **GGUF** (often quantized) community models from Hugging Face.
 - Produce a **RAGpack** (`chunks.json`, `embeddings.npy`, `embeddings.csv`, `metadata.json`).
 - (Optional) Execute the same workflow on **Google Colab** using our helper notebook.
@@ -167,6 +170,8 @@ build/
 ## Legal Disclaimer
 
 This project provides tools (pipelines, utilities, and examples) for creating RAGpacks and experimenting with Retrieval‑Augmented Generation (RAG). **No copyrighted texts, PDFs, or derivative datasets are included in this repository.**
+
+Demonstration videos (YouTube) are included in the README for educational purposes; they do not distribute copyrighted materials, only show the workflow.
 
 Users are responsible for ensuring that their use of this project complies with applicable copyright and data‑protection laws in their jurisdiction. For example, creating embeddings from copyrighted works may be permissible for private research or experimentation (e.g., under "text and data mining" exceptions), but redistribution of the original texts or derived chunks is typically prohibited.
 
