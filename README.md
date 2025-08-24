@@ -20,8 +20,15 @@
 🎥 **Demo video**: [Watch on YouTube](https://youtu.be/XT_cp066NRE)
 
 - Safely download **GGUF** (often quantized) community models from Hugging Face.
-- Produce a **RAGpack** (`chunks.json`, `embeddings.npy`, `embeddings.csv`, `metadata.json`).
+- Produce a **RAGpack v1.1** (`chunks.json`, `embeddings.npy`, `citations.jsonl`, `manifest.json`).
 - (Optional) Execute the same workflow on **Google Colab** using our helper notebook.
+
+### NEW: RAGpack v1.1 Features
+- 📍 **Precise Citations**: Paragraph boundaries and character offsets for accurate text highlighting
+- 🔍 **Rich Metadata**: Embedder version, indexing timestamps, source diversity metrics  
+- 🎯 **Preview Support**: snippet extraction and context for DeepSearch UI
+- ✅ **Validation**: Built-in CLI validation with `nn-pack validate`
+- 🔄 **Backward Compatible**: Automatically handles legacy RAGpacks with warnings
 
 ---
 

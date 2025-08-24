@@ -1,0 +1,167 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RAGpack Manifest v1.1",
+  "description": "Schema for RAGpack manifest version 1.1 with enhanced metadata for citation preview and retrieval features",
+  "type": "object",
+  "required": [
+    "pack_version",
+    "pack_id", 
+    "created_at",
+    "chunker",
+    "embedder",
+    "indexer",
+    "files"
+  ],
+  "properties": {
+    "pack_version": {
+      "type": "string",
+      "const": "1.1",
+      "description": "RAGpack format version"
+    },
+    "pack_id": {
+      "type": "string",
+      "description": "Unique identifier for this RAGpack"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when pack was created"
+    },
+    "chunker": {
+      "type": "object",
+      "required": ["method", "chunk_size", "overlap"],
+      "properties": {
+        "method": {
+          "type": "string",
+          "description": "Chunking method used (e.g., token_based, sentence_based)"
+        },
+        "chunk_size": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum chunk size in tokens"
+        },
+        "overlap": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Overlap between chunks in tokens"
+        },
+        "tokenizer_name": {
+          "type": "string",
+          "description": "Name of tokenizer used for chunking"
+        },
+        "preserve_sentences": {
+          "type": "boolean",
+          "description": "Whether sentence boundaries were preserved"
+        }
+      }
+    },
+    "embedder": {
+      "type": "object",
+      "required": ["name", "version", "dimensions"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the embedding model"
+        },
+        "version": {
+          "type": "string",
+          "description": "Version of the embedding model"
+        },
+        "hash": {
+          "type": "string",
+          "description": "Hash of the model for verification"
+        },
+        "dimensions": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Dimensionality of embeddings"
+        }
+      }
+    },
+    "indexer": {
+      "type": "object",
+      "properties": {
+        "document_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of source documents"
+        },
+        "chunk_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of chunks"
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional features included (e.g., bm25_tf_idf)"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When indexing was performed"
+        }
+      }
+    },
+    "files": {
+      "type": "object",
+      "required": ["chunks", "embeddings"],
+      "properties": {
+        "chunks": {
+          "type": "string",
+          "description": "Path to chunks file (typically chunks.json)"
+        },
+        "embeddings": {
+          "type": "string", 
+          "description": "Path to embeddings file (typically embeddings.npy)"
+        },
+        "citations": {
+          "type": "string",
+          "description": "Path to citations file (typically citations.jsonl)"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional file metadata"
+        }
+      }
+    },
+    "source_documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["doc_id", "title"],
+        "properties": {
+          "doc_id": {
+            "type": "string",
+            "description": "Unique document identifier"
+          },
+          "title": {
+            "type": "string", 
+            "description": "Document title"
+          },
+          "path": {
+            "type": "string",
+            "description": "Original file path"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Document processing timestamp"
+          },
+          "page_count": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Number of pages (for PDFs)"
+          },
+          "char_count": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Total character count"
+          }
+        }
+      }
+    }
+  }
+}

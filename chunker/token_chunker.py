@@ -5,7 +5,7 @@ This module provides TokenChunker class for splitting text into chunks
 based on token count with configurable overlap.
 """
 
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict, Any
 import warnings
 
 # Try to import transformers, fall back to basic splitting if not available
@@ -110,15 +110,16 @@ class TokenChunker:
             # Use character estimation
             return min(len(text), int(target_tokens * self._char_to_token_ratio))
     
-    def chunk_text(self, text: str) -> List[str]:
+    def chunk_text_with_offsets(self, text: str, doc_id: str = "unknown") -> List[dict]:
         """
-        Split text into chunks with overlap.
+        Split text into chunks with detailed offset information.
         
         Args:
             text: Input text to chunk
+            doc_id: Document identifier for tracking
             
         Returns:
-            List of text chunks
+            List of dictionaries with chunk data and offset information
         """
         if not text or not text.strip():
             return []
@@ -127,10 +128,21 @@ class TokenChunker:
         
         # If text is shorter than chunk size, return as single chunk
         if self._count_tokens(text) <= self.chunk_size:
-            return [text]
+            return [{
+                'chunk_id': 0,
+                'doc_id': doc_id,
+                'text': text,
+                'start_char': 0,
+                'end_char': len(text),
+                'token_count': self._count_tokens(text),
+                'char_count': len(text),
+                'paragraph_boundaries': self._find_paragraph_boundaries(text),
+                'snippet': text[:200] + '...' if len(text) > 200 else text
+            }]
         
         chunks = []
         start_pos = 0
+        chunk_id = 0
         
         while start_pos < len(text):
             # Find end position for this chunk
@@ -147,9 +159,25 @@ class TokenChunker:
             end_pos = min(end_pos, len(text))
             
             # Extract chunk
-            chunk = text[start_pos:end_pos].strip()
-            if chunk:  # Only add non-empty chunks
-                chunks.append(chunk)
+            chunk_text = text[start_pos:end_pos].strip()
+            if chunk_text:  # Only add non-empty chunks
+                # Find actual start/end positions of the stripped chunk in original text
+                actual_start = text.find(chunk_text, start_pos)
+                actual_end = actual_start + len(chunk_text)
+                
+                chunk_data = {
+                    'chunk_id': chunk_id,
+                    'doc_id': doc_id,
+                    'text': chunk_text,
+                    'start_char': actual_start,
+                    'end_char': actual_end,
+                    'token_count': self._count_tokens(chunk_text),
+                    'char_count': len(chunk_text),
+                    'paragraph_boundaries': self._find_paragraph_boundaries(chunk_text),
+                    'snippet': chunk_text[:200] + '...' if len(chunk_text) > 200 else chunk_text
+                }
+                chunks.append(chunk_data)
+                chunk_id += 1
             
             # If we've reached the end, break
             if end_pos >= len(text):
@@ -166,6 +194,32 @@ class TokenChunker:
                 start_pos = end_pos
         
         return chunks
+
+    def _find_paragraph_boundaries(self, text: str) -> List[int]:
+        """Find paragraph boundaries in text (positions of double newlines)."""
+        boundaries = []
+        pos = 0
+        while True:
+            pos = text.find('\n\n', pos)
+            if pos == -1:
+                break
+            boundaries.append(pos)
+            pos += 2
+        return boundaries
+    
+    def chunk_text(self, text: str) -> List[str]:
+        """
+        Split text into chunks with overlap.
+        
+        Args:
+            text: Input text to chunk
+            
+        Returns:
+            List of text chunks
+        """
+        # Use the new method and extract just the text
+        chunks_with_offsets = self.chunk_text_with_offsets(text)
+        return [chunk['text'] for chunk in chunks_with_offsets]
     
     def get_chunk_info(self, chunks: List[str]) -> List[dict]:
         """
@@ -186,3 +240,18 @@ class TokenChunker:
                 'chunk_text_preview': chunk[:100] + '...' if len(chunk) > 100 else chunk
             })
         return info
+    
+    def get_chunker_metadata(self) -> Dict[str, Any]:
+        """
+        Get chunker configuration metadata for manifest.
+        
+        Returns:
+            Dictionary with chunker metadata
+        """
+        return {
+            "method": "token_based",
+            "chunk_size": self.chunk_size,
+            "overlap": self.overlap,
+            "tokenizer_name": self.tokenizer_name,
+            "preserve_sentences": self.preserve_sentences
+        }
