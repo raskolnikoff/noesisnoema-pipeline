@@ -105,10 +105,18 @@ shasum -a 256 models/<your_model_dir>/*.gguf   # optional integrity check
 
 ### 4) Build a RAGpack (chunks + embeddings)
 Use the notebook under `notebooks/` to turn your documents into a self‑contained **RAGpack**. Output files:
-- `chunks.json` — split text
+- `chunks.json` — split text using improved token-based chunking
 - `embeddings.npy` — NumPy embeddings (fast to load)
 - `embeddings.csv` — CSV embeddings (easy to load from Swift/iOS, etc.)
-- `metadata.json`
+- `metadata.json` — enhanced with chunking parameters
+
+**New**: The chunker now uses **token-based splitting** with configurable overlap instead of simple character-based splitting:
+- **Chunk size**: Configure in tokens (default 512) for better LLM compatibility
+- **Overlap**: Configurable token overlap (default 50) for context preservation
+- **Smart boundaries**: Attempts to break at sentence boundaries when possible
+- **Unicode support**: Proper handling of non-ASCII text, emojis, and multiple languages
+
+For more details, see `chunker/README.md`.
 
 > RAGpack is model‑agnostic and independent of the GGUF download step.
 
