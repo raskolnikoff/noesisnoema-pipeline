@@ -410,3 +410,8 @@ exported/
 *.jsonl
 .DS_Store
 *.log
+
+# Sample/demo files (keep these for now)
+# sample_ragpack.zip
+# create_sample_ragpack.py
+# demo_*.py
