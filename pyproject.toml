@@ -17,20 +17,31 @@ dependencies = [
     "numpy>=1.21.0",
     "pyarrow>=14.0.0",
     "typer>=0.9.0",
+    # Manifest schema validation (v1.2/v1.3 conformance; noema-gate verify).
+    "jsonschema>=4.0.0",
+    # G3 policy manifest parsing (noema-gate).
+    "pyyaml>=6.0",
+    # Ed25519 hash-chain signing / evidence package verification (Noema v0.8).
+    "cryptography>=41.0.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=6.0.0",
-    "jsonschema>=4.0.0",
 ]
 
 [project.scripts]
 nn-pipeline = "cli.build_ragpack:app"
+noema-gate = "noema_gate.cli:app"
+noema-audit = "noema_audit.cli:app"
+noema-evidence = "noema_evidence.cli:app"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["chunker*", "embedder*", "ragpack*", "cli*", "writer*", "extraction*"]
+include = [
+    "chunker*", "embedder*", "ragpack*", "cli*", "writer*", "extraction*",
+    "retrieval*", "noema_gate*", "noema_audit*", "noema_evidence*",
+]
 
 [tool.setuptools.package-data]
 # Bundled common-English word list used by the extraction-quality gate.
