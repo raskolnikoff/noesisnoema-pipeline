@@ -1,0 +1,30 @@
+{"query_id": "q000", "query": "What does human freedom consist of according to Spinoza?", "relevant_chunk_ids": ["0"]}
+{"query_id": "q001", "query": "How does acting from one's own nature relate to freedom?", "relevant_chunk_ids": ["0"]}
+{"query_id": "q002", "query": "What is the cause of human bondage?", "relevant_chunk_ids": ["1"]}
+{"query_id": "q003", "query": "Why do passions overpower reason in bondage?", "relevant_chunk_ids": ["1"]}
+{"query_id": "q004", "query": "What is substance in Spinoza's metaphysics?", "relevant_chunk_ids": ["2"]}
+{"query_id": "q005", "query": "Does substance depend on anything else to exist?", "relevant_chunk_ids": ["2"]}
+{"query_id": "q006", "query": "What is an attribute of substance?", "relevant_chunk_ids": ["3"]}
+{"query_id": "q007", "query": "How does the intellect perceive substance's essence?", "relevant_chunk_ids": ["3"]}
+{"query_id": "q008", "query": "How is God defined as an infinite being?", "relevant_chunk_ids": ["4"]}
+{"query_id": "q009", "query": "What are God's infinite attributes?", "relevant_chunk_ids": ["4"]}
+{"query_id": "q010", "query": "What is the relationship between the human mind and God's intellect?", "relevant_chunk_ids": ["5"]}
+{"query_id": "q011", "query": "How does the mind reflect the body it animates?", "relevant_chunk_ids": ["5"]}
+{"query_id": "q012", "query": "What is the order and connection of ideas?", "relevant_chunk_ids": ["6"]}
+{"query_id": "q013", "query": "How do ideas correspond to things?", "relevant_chunk_ids": ["6"]}
+{"query_id": "q014", "query": "What is an emotion according to Spinoza?", "relevant_chunk_ids": ["7"]}
+{"query_id": "q015", "query": "How does emotion relate to the force of existing?", "relevant_chunk_ids": ["7"]}
+{"query_id": "q016", "query": "What is joy defined as?", "relevant_chunk_ids": ["8"]}
+{"query_id": "q017", "query": "How does joy relate to perfection?", "relevant_chunk_ids": ["8"]}
+{"query_id": "q018", "query": "What is sadness defined as?", "relevant_chunk_ids": ["9"]}
+{"query_id": "q019", "query": "How does sadness relate to a lesser perfection?", "relevant_chunk_ids": ["9"]}
+{"query_id": "q020", "query": "What is virtue according to Spinoza's Ethics?", "relevant_chunk_ids": ["10"]}
+{"query_id": "q021", "query": "How does virtue relate to one's own nature?", "relevant_chunk_ids": ["10"]}
+{"query_id": "q022", "query": "What is the highest form of knowledge?", "relevant_chunk_ids": ["11"]}
+{"query_id": "q023", "query": "What is intuitive knowledge of essences?", "relevant_chunk_ids": ["11"]}
+{"query_id": "q024", "query": "How is the power of the mind defined?", "relevant_chunk_ids": ["12"]}
+{"query_id": "q025", "query": "What is the role of the mind's power?", "relevant_chunk_ids": ["12"]}
+{"query_id": "q026", "query": "Does nature have a final goal or purpose?", "relevant_chunk_ids": ["13"]}
+{"query_id": "q027", "query": "Are final causes real or human fictions?", "relevant_chunk_ids": ["13"]}
+{"query_id": "q028", "query": "In what sense is the mind eternal?", "relevant_chunk_ids": ["14"]}
+{"query_id": "q029", "query": "How does eternity relate to conceiving things?", "relevant_chunk_ids": ["14"]}
