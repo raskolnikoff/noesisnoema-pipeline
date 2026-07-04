@@ -14,6 +14,7 @@ manifest body is assembled by ``ragpack.manifest_builder.build_manifest_v1_2``
 so there is one source of truth for its shape.
 """
 
+import hashlib
 import json
 import zipfile
 import numpy as np
@@ -23,7 +24,7 @@ from datetime import datetime
 import uuid
 from io import BytesIO
 
-from ragpack.manifest_builder import build_manifest_v1_2
+from ragpack.manifest_builder import build_manifest_v1_2, build_manifest_v1_3
 
 
 #: Default RAGpack format version emitted by PackWriter.
@@ -48,23 +49,35 @@ class PackWriter:
         pack_id: Optional[str] = None,
         created_at: Optional[str] = None,
         pack_version: str = DEFAULT_PACK_VERSION,
+        source_license: str = "internal",
+        normalization: str = "mean_center",
     ):
         """
         Initialize pack writer.
 
         Args:
-            pack_id:      Unique identifier for the pack (random uuid4 if None).
-            created_at:   ISO-8601 timestamp string (wall clock if None).
-                          Supply explicitly for reproducible packs.
-            pack_version: Manifest format version, "1.2" (default) or "1.1".
+            pack_id:       Unique identifier for the pack (random uuid4 if None).
+            created_at:    ISO-8601 timestamp string (wall clock if None).
+                           Supply explicitly for reproducible packs.
+            pack_version:  Manifest format version, "1.2" (default), "1.1", or "1.3".
+            source_license: SPDX id or 'proprietary'/'internal' recorded on every
+                           v1.3 provenance.sources[] entry (v1.3 only).
+            normalization: v1.3 ``embedding.normalization`` ("mean_center" or
+                           "none"). Defaults to "mean_center" — nomic-embed-text
+                           embeddings are anisotropic and the app already
+                           mean-centers at query time (ADR-0011); this makes
+                           that existing behaviour explicit in the manifest
+                           instead of implicit app-side knowledge (v1.3 only).
         """
-        if pack_version not in ("1.1", "1.2"):
+        if pack_version not in ("1.1", "1.2", "1.3"):
             raise ValueError(
-                f"pack_version must be '1.1' or '1.2', got {pack_version!r}"
+                f"pack_version must be '1.1', '1.2', or '1.3', got {pack_version!r}"
             )
         self.pack_id = pack_id or str(uuid.uuid4())
         self.created_at = created_at or datetime.now().isoformat()
         self.pack_version = pack_version
+        self._source_license = source_license
+        self._normalization = normalization
     
     def write_pack(self, 
                    chunks_with_metadata: List[Dict[str, Any]],
@@ -119,20 +132,26 @@ class PackWriter:
         # Prepare data
         chunks_json = [chunk['text'] for chunk in chunks_with_metadata]
         citations_data = self._generate_citations(chunks_with_metadata)
+
+        chunks_bytes = json.dumps(chunks_json, ensure_ascii=False).encode('utf-8')
+        embeddings_bytes_io = BytesIO()
+        np.save(embeddings_bytes_io, embeddings)
+        embeddings_bytes = embeddings_bytes_io.getvalue()
+
         manifest_data = self._generate_manifest(
-            chunker_metadata, embedder_metadata, indexer_metadata, source_documents
+            chunker_metadata, embedder_metadata, indexer_metadata, source_documents,
+            chunks_sha256=hashlib.sha256(chunks_bytes).hexdigest(),
+            embeddings_sha256=hashlib.sha256(embeddings_bytes).hexdigest(),
+            embeddings=embeddings,
         )
-        
+
         with zipfile.ZipFile(zip_path, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
             # Write chunks.json
-            chunks_bytes = json.dumps(chunks_json, ensure_ascii=False).encode('utf-8')
             zf.writestr("chunks.json", chunks_bytes)
-            
+
             # Write embeddings.npy
-            embeddings_bytes_io = BytesIO()
-            np.save(embeddings_bytes_io, embeddings)
-            zf.writestr("embeddings.npy", embeddings_bytes_io.getvalue())
-            
+            zf.writestr("embeddings.npy", embeddings_bytes)
+
             # Write embeddings.csv (backup format)
             embeddings_csv_io = BytesIO()
             np.savetxt(embeddings_csv_io, embeddings, delimiter=",")
@@ -162,21 +181,31 @@ class PackWriter:
         """Write RAGpack to directory."""
         
         dir_path.mkdir(parents=True, exist_ok=True)
-        
+
         # Prepare data
         chunks_json = [chunk['text'] for chunk in chunks_with_metadata]
         citations_data = self._generate_citations(chunks_with_metadata)
+
+        chunks_bytes = json.dumps(chunks_json, ensure_ascii=False, indent=2).encode('utf-8')
+        embeddings_bytes_io = BytesIO()
+        np.save(embeddings_bytes_io, embeddings)
+        embeddings_bytes = embeddings_bytes_io.getvalue()
+
         manifest_data = self._generate_manifest(
-            chunker_metadata, embedder_metadata, indexer_metadata, source_documents
+            chunker_metadata, embedder_metadata, indexer_metadata, source_documents,
+            chunks_sha256=hashlib.sha256(chunks_bytes).hexdigest(),
+            embeddings_sha256=hashlib.sha256(embeddings_bytes).hexdigest(),
+            embeddings=embeddings,
         )
-        
+
         # Write chunks.json
-        with open(dir_path / "chunks.json", 'w', encoding='utf-8') as f:
-            json.dump(chunks_json, f, ensure_ascii=False, indent=2)
-        
+        with open(dir_path / "chunks.json", 'wb') as f:
+            f.write(chunks_bytes)
+
         # Write embeddings.npy
-        np.save(dir_path / "embeddings.npy", embeddings)
-        
+        with open(dir_path / "embeddings.npy", 'wb') as f:
+            f.write(embeddings_bytes)
+
         # Write embeddings.csv (backup format)
         np.savetxt(dir_path / "embeddings.csv", embeddings, delimiter=",")
         
@@ -234,8 +263,17 @@ class PackWriter:
                           chunker_metadata: Dict[str, Any],
                           embedder_metadata: Dict[str, Any],
                           indexer_metadata: Dict[str, Any],
-                          source_documents: List[Dict[str, Any]]) -> Dict[str, Any]:
+                          source_documents: List[Dict[str, Any]],
+                          chunks_sha256: Optional[str] = None,
+                          embeddings_sha256: Optional[str] = None,
+                          embeddings: Optional[np.ndarray] = None) -> Dict[str, Any]:
         """Generate the nested manifest for the configured pack_version."""
+        if self.pack_version == "1.3":
+            return self._generate_manifest_v1_3(
+                embedder_metadata, source_documents,
+                chunks_sha256, embeddings_sha256, embeddings,
+            )
+
         if self.pack_version == "1.2":
             return build_manifest_v1_2(
                 pack_id=self.pack_id,
@@ -274,3 +312,53 @@ class PackWriter:
             },
             "source_documents": source_documents
         }
+
+    def _generate_manifest_v1_3(self,
+                                 embedder_metadata: Dict[str, Any],
+                                 source_documents: List[Dict[str, Any]],
+                                 chunks_sha256: Optional[str],
+                                 embeddings_sha256: Optional[str],
+                                 embeddings: Optional[np.ndarray]) -> Dict[str, Any]:
+        """
+        Build the v1.3 manifest: embedding identity + integrity hashes +
+        provenance (derived from the source registry). Governance is
+        intentionally omitted here — see build_manifest_v1_3 docstring; a
+        freshly built pack is ungoverned until ``noema-gate stamp``.
+        """
+        embedding_block: Dict[str, Any] = {
+            "model_id": embedder_metadata.get("embedding_model"),
+            "dim": embedder_metadata.get("embedding_dimension"),
+            "normalization": self._normalization,
+        }
+        if self._normalization == "mean_center" and embeddings is not None and embeddings.shape[0] > 0:
+            unit = embeddings.astype(np.float64)
+            norms = np.linalg.norm(unit, axis=1, keepdims=True)
+            norms[norms == 0] = 1.0
+            centroid = (unit / norms).mean(axis=0)
+            embedding_block["centroid_sha256"] = hashlib.sha256(centroid.tobytes()).hexdigest()
+
+        provenance = None
+        sources = []
+        for doc in source_documents or []:
+            source_id = doc.get("doc_id") or doc.get("source_id")
+            source_sha256 = doc.get("source_hash")
+            if not source_id or not source_sha256:
+                continue
+            entry = {"source_id": source_id, "sha256": source_sha256, "license": self._source_license}
+            uri = doc.get("path") or doc.get("source_path")
+            if uri:
+                entry["uri"] = uri
+            sources.append(entry)
+        if sources:
+            provenance = {"sources": sources}
+
+        return build_manifest_v1_3(
+            pack_id=self.pack_id,
+            created_at=self.created_at,
+            embedding=embedding_block,
+            integrity={
+                "chunks_sha256": chunks_sha256,
+                "embeddings_sha256": embeddings_sha256,
+            },
+            provenance=provenance,
+        )

@@ -145,6 +145,116 @@ def build_manifest_v1_2(
     return manifest
 
 
+# ---------------------------------------------------------------------------
+# RAGpack v1.3 — additive governance extension (Noema ADR-0003 / v0.8)
+# ---------------------------------------------------------------------------
+#
+# v1.3 is strictly additive over v1.2: it replaces the flat chunker/embedder
+# blocks with the leaner ``embedding`` block (schema:
+# schemas/ragpack-manifest-1.3.schema.json) and adds ``provenance`` and
+# ``governance`` blocks used by the G3 promotion gate (noema-gate). A pack
+# missing the ``governance`` block is treated as ungoverned by readers — build
+# time therefore does NOT synthesize a governance block; ``noema-gate stamp``
+# writes it once a pack is promoted.
+
+#: Fields the v1.3 schema requires inside the embedding block.
+REQUIRED_V1_3_EMBEDDING_FIELDS = frozenset({"model_id", "dim", "normalization"})
+
+#: Fields the v1.3 schema requires inside the integrity block.
+REQUIRED_V1_3_INTEGRITY_FIELDS = frozenset({"chunks_sha256", "embeddings_sha256"})
+
+#: Fields the v1.3 schema requires on each provenance.sources[] entry.
+REQUIRED_V1_3_SOURCE_FIELDS = frozenset({"source_id", "sha256", "license"})
+
+
+def build_manifest_v1_3(
+    *,
+    pack_id: str,
+    created_at: str,
+    embedding: dict[str, Any],
+    integrity: dict[str, Any],
+    provenance: dict[str, Any] | None = None,
+    governance: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """
+    Build the canonical, nested RAGpack **v1.3** manifest dict.
+
+    The result conforms to ``schemas/ragpack-manifest-1.3.schema.json``.  v1.3
+    is additive over v1.2 (ADR-0003): callers migrating from
+    ``build_manifest_v1_2`` supply the same identity information reshaped into
+    ``embedding``/``integrity``/``provenance`` blocks; the v1.2 builder and
+    schema are untouched and remain valid for existing v1.2 readers.
+
+    Args:
+        pack_id:     Stable unique identifier for the pack.
+        created_at:  ISO-8601 timestamp string.
+        embedding:   Embedding identity block — must contain ``model_id``,
+                     ``dim``, ``normalization`` (``"none"`` or
+                     ``"mean_center"``); ``centroid_sha256`` is optional.
+        integrity:   Must contain ``chunks_sha256`` and ``embeddings_sha256``
+                     (sha256 hex digests of the corresponding pack files).
+        provenance:  Optional ``{"sources": [...]}`` block; each source must
+                     carry ``source_id``, ``sha256``, ``license``.
+        governance:  Optional governance block.  Omit at build time — a
+                     freshly built pack is ungoverned until ``noema-gate
+                     stamp`` writes ``governance.promotion``.
+
+    Returns:
+        Nested manifest dict with ``ragpack_version == "1.3"``.
+
+    Raises:
+        ValueError: if pack_id/created_at are empty, or embedding/integrity
+                    are missing required fields, or a provenance source is
+                    missing a required field.
+    """
+    if not pack_id:
+        raise ValueError("pack_id must not be empty")
+    if not created_at:
+        raise ValueError("created_at must not be empty")
+    if not isinstance(embedding, dict) or not embedding:
+        raise ValueError("embedding metadata block must be a non-empty dict")
+    if not isinstance(integrity, dict) or not integrity:
+        raise ValueError("integrity block must be a non-empty dict")
+
+    missing = REQUIRED_V1_3_EMBEDDING_FIELDS - set(embedding)
+    if missing:
+        raise ValueError(
+            f"embedding block missing v1.3-required field(s): {sorted(missing)}"
+        )
+    missing = REQUIRED_V1_3_INTEGRITY_FIELDS - set(integrity)
+    if missing:
+        raise ValueError(
+            f"integrity block missing v1.3-required field(s): {sorted(missing)}"
+        )
+
+    if provenance is not None:
+        if not isinstance(provenance, dict) or "sources" not in provenance:
+            raise ValueError("provenance block must be a dict with a 'sources' key")
+        sources = provenance["sources"]
+        if not isinstance(sources, list) or not sources:
+            raise ValueError("provenance.sources must be a non-empty list")
+        for idx, source in enumerate(sources):
+            missing = REQUIRED_V1_3_SOURCE_FIELDS - set(source)
+            if missing:
+                raise ValueError(
+                    f"provenance.sources[{idx}] missing v1.3-required "
+                    f"field(s): {sorted(missing)}"
+                )
+
+    manifest: dict[str, Any] = {
+        "ragpack_version": "1.3",
+        "pack_id": pack_id,
+        "created_at": created_at,
+        "embedding": dict(embedding),
+        "integrity": dict(integrity),
+    }
+    if provenance is not None:
+        manifest["provenance"] = {"sources": [dict(s) for s in provenance["sources"]]}
+    if governance is not None:
+        manifest["governance"] = dict(governance)
+    return manifest
+
+
 def _manifest_hash(manifest_body: dict) -> str:
     """
     Return a SHA-256 hex digest of the manifest body (excluding the hash
