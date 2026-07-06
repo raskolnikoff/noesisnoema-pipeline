@@ -353,38 +353,22 @@ def _derive_pack_id(
     return "pack-" + hashlib.sha256(payload.encode("utf-8")).hexdigest()[:32]
 
 
-def run_pipeline_v12(
+def _run_pipeline_llamacpp(
     input_dir: Path,
     output_dir: Path,
     gguf_path: Path,
     chunk_size: int,
     overlap: int,
     creation_time: str,
+    pack_version: str,
+    source_license: str = "internal",
     verbose: bool = False,
 ) -> PipelineResult:
     """
-    Execute the RAGpack **v1.2** generation pipeline (ADR-0011 §5).
-
-    Differs from ``run_pipeline`` (the legacy EPIC3 parquet path) in that it
-    embeds with the llama.cpp GGUF embedder and writes the app-facing nested
-    pack via ``PackWriter``: ``manifest.json`` (v1.2), ``citations.jsonl``,
-    ``chunks.json`` and ``embeddings.npy``.
-
-    Determinism: every offset/identity input is derived from file content;
-    ``creation_time`` and the derived ``pack_id`` are the only time-like inputs
-    and both are reproducible from the same sources.
-
-    Args:
-        input_dir:     Directory with .txt/.md source files.
-        output_dir:    Directory where the v1.2 pack is written.
-        gguf_path:     Path to the embedder GGUF (e.g. nomic-embed-text-v1.5).
-        chunk_size:    Maximum tokens per chunk.
-        overlap:       Token overlap between consecutive chunks.
-        creation_time: ISO-8601 timestamp string (caller-supplied).
-        verbose:       Whether to emit progress lines.
-
-    Returns:
-        PipelineResult with the written manifest/embeddings/chunks/citations.
+    Shared llama.cpp / PackWriter pipeline body for run_pipeline_v12 (v1.2,
+    frozen for existing readers) and run_pipeline_v13 (v1.3, ADR-0003
+    governance manifest). Only ``pack_version``/``source_license`` differ
+    between the two; see either wrapper's docstring for the pipeline steps.
     """
     from embedder.llamacpp_embedder import LlamaCppEmbedder
 
@@ -491,7 +475,8 @@ def run_pipeline_v12(
     pack_writer = PackWriter(
         pack_id=pack_id,
         created_at=creation_time,
-        pack_version="1.2",
+        pack_version=pack_version,
+        source_license=source_license,
     )
     output_dir.mkdir(parents=True, exist_ok=True)
     pack_writer.write_pack(
@@ -520,6 +505,104 @@ def run_pipeline_v12(
         file_count=len(source_files),
         source_files=source_files,
         written_paths=written_paths,
+    )
+
+
+def run_pipeline_v12(
+    input_dir: Path,
+    output_dir: Path,
+    gguf_path: Path,
+    chunk_size: int,
+    overlap: int,
+    creation_time: str,
+    verbose: bool = False,
+) -> PipelineResult:
+    """
+    Execute the RAGpack **v1.2** generation pipeline (ADR-0011 §5).
+
+    Differs from ``run_pipeline`` (the legacy EPIC3 parquet path) in that it
+    embeds with the llama.cpp GGUF embedder and writes the app-facing nested
+    pack via ``PackWriter``: ``manifest.json`` (v1.2), ``citations.jsonl``,
+    ``chunks.json`` and ``embeddings.npy``.
+
+    Determinism: every offset/identity input is derived from file content;
+    ``creation_time`` and the derived ``pack_id`` are the only time-like inputs
+    and both are reproducible from the same sources.
+
+    Frozen for existing v1.2 readers (additive-compatibility constraint,
+    Noema ADR-0003 / v0.8): this function's output shape does not change when
+    v1.3 support is added — see ``run_pipeline_v13``.
+
+    Args:
+        input_dir:     Directory with .txt/.md source files.
+        output_dir:    Directory where the v1.2 pack is written.
+        gguf_path:     Path to the embedder GGUF (e.g. nomic-embed-text-v1.5).
+        chunk_size:    Maximum tokens per chunk.
+        overlap:       Token overlap between consecutive chunks.
+        creation_time: ISO-8601 timestamp string (caller-supplied).
+        verbose:       Whether to emit progress lines.
+
+    Returns:
+        PipelineResult with the written manifest/embeddings/chunks/citations.
+    """
+    return _run_pipeline_llamacpp(
+        input_dir=input_dir,
+        output_dir=output_dir,
+        gguf_path=gguf_path,
+        chunk_size=chunk_size,
+        overlap=overlap,
+        creation_time=creation_time,
+        pack_version="1.2",
+        verbose=verbose,
+    )
+
+
+def run_pipeline_v13(
+    input_dir: Path,
+    output_dir: Path,
+    gguf_path: Path,
+    chunk_size: int,
+    overlap: int,
+    creation_time: str,
+    source_license: str = "internal",
+    verbose: bool = False,
+) -> PipelineResult:
+    """
+    Execute the RAGpack **v1.3** generation pipeline (Noema ADR-0003 / v0.8).
+
+    Same pipeline steps as ``run_pipeline_v12`` (llama.cpp embedding,
+    PackWriter assembly), but the written manifest carries the leaner
+    ``embedding``/``integrity``/``provenance`` v1.3 shape instead of the
+    flat v1.2 ``chunker``/``embedder`` blocks: provenance sources are derived
+    from the pipeline's own source registry (doc_id/source_hash/path per
+    file), and ``integrity.chunks_sha256``/``embeddings_sha256`` are computed
+    from the written artifact bytes. The pack is built ungoverned (no
+    ``governance`` block) — ``noema-gate stamp`` adds it once G3-promoted.
+
+    Args:
+        input_dir:      Directory with .txt/.md source files.
+        output_dir:     Directory where the v1.3 pack is written.
+        gguf_path:      Path to the embedder GGUF (e.g. nomic-embed-text-v1.5).
+        chunk_size:     Maximum tokens per chunk.
+        overlap:        Token overlap between consecutive chunks.
+        creation_time:  ISO-8601 timestamp string (caller-supplied).
+        source_license: SPDX id or 'proprietary'/'internal' recorded on every
+                        provenance.sources[] entry.
+        verbose:        Whether to emit progress lines.
+
+    Returns:
+        PipelineResult with the written manifest/embeddings/chunks/citations.
+    """
+    return _run_pipeline_llamacpp(
+        input_dir=input_dir,
+        output_dir=output_dir,
+        gguf_path=gguf_path,
+        chunk_size=chunk_size,
+        overlap=overlap,
+        creation_time=creation_time,
+        pack_version="1.3",
+        source_license=source_license,
+        verbose=verbose,
     )
 
 
@@ -581,6 +664,21 @@ def build(
             f"Falls back to the {GGUF_ENV_VAR} environment variable."
         ),
     ),
+    manifest_version: str = typer.Option(
+        "1.2",
+        "--manifest-version",
+        help=(
+            "Manifest shape for the llama-cpp path: '1.2' (default, unchanged "
+            "for existing readers) or '1.3' (Noema ADR-0003 governance "
+            "manifest — provenance + integrity blocks, ungoverned until "
+            "'noema-gate stamp')."
+        ),
+    ),
+    source_license: str = typer.Option(
+        "internal",
+        "--source-license",
+        help="SPDX id or 'proprietary'/'internal' recorded on v1.3 provenance sources (--manifest-version 1.3 only).",
+    ),
     model: str = typer.Option(
         DEFAULT_MODEL_NAME,
         "--model",
@@ -625,6 +723,13 @@ def build(
         )
         raise typer.Exit(code=1)
 
+    if manifest_version not in ("1.2", "1.3"):
+        typer.echo(
+            f"ERROR: --manifest-version must be '1.2' or '1.3', got '{manifest_version}'.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
     if verbose:
         typer.echo(f"nn-pipeline build")
         typer.echo(f"  input_dir:     {input_dir}")
@@ -638,17 +743,29 @@ def build(
         if embedder == EMBEDDER_LLAMACPP:
             gguf_path = _resolve_gguf_path(gguf)
             if verbose:
-                typer.echo(f"  pack_version:  1.2")
+                typer.echo(f"  pack_version:  {manifest_version}")
                 typer.echo(f"  gguf:          {gguf_path}")
-            result = run_pipeline_v12(
-                input_dir=input_dir,
-                output_dir=output_dir,
-                gguf_path=gguf_path,
-                chunk_size=chunk_size,
-                overlap=overlap,
-                creation_time=creation_time,
-                verbose=verbose,
-            )
+            if manifest_version == "1.3":
+                result = run_pipeline_v13(
+                    input_dir=input_dir,
+                    output_dir=output_dir,
+                    gguf_path=gguf_path,
+                    chunk_size=chunk_size,
+                    overlap=overlap,
+                    creation_time=creation_time,
+                    source_license=source_license,
+                    verbose=verbose,
+                )
+            else:
+                result = run_pipeline_v12(
+                    input_dir=input_dir,
+                    output_dir=output_dir,
+                    gguf_path=gguf_path,
+                    chunk_size=chunk_size,
+                    overlap=overlap,
+                    creation_time=creation_time,
+                    verbose=verbose,
+                )
         else:
             warnings.warn(
                 "The sentence-transformers embedder produces v1.1 manifests, "

@@ -1,0 +1,295 @@
+[
+  {
+    "name": "genesis-pack-build",
+    "event": {
+      "event_id": "00000000-0000-4000-8000-000000000001",
+      "ts": "2026-07-02T10:00:00+09:00",
+      "plane": "knowledge",
+      "actor": "pipeline-build",
+      "action": "pack.build",
+      "triplet": {},
+      "inputs": {
+        "sha256_refs": [
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ]
+      },
+      "outputs": {
+        "sha256_refs": [
+          "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ]
+      },
+      "detail": {
+        "chunk_count": 42
+      },
+      "prev_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "event_hash": null
+    },
+    "canonical_jcs": "{\"action\":\"pack.build\",\"actor\":\"pipeline-build\",\"detail\":{\"chunk_count\":42},\"event_hash\":null,\"event_id\":\"00000000-0000-4000-8000-000000000001\",\"inputs\":{\"sha256_refs\":[\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"]},\"outputs\":{\"sha256_refs\":[\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"]},\"plane\":\"knowledge\",\"prev_hash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"triplet\":{},\"ts\":\"2026-07-02T10:00:00+09:00\"}",
+    "sha256": "b7dc3911923bf8be637b25bbd1c57c050d71cdbbfe565b12f5424d439ec2bd44"
+  },
+  {
+    "name": "gate-run-with-triplet",
+    "event": {
+      "event_id": "00000000-0000-4000-8000-000000000002",
+      "ts": "2026-07-02T10:05:00+09:00",
+      "plane": "knowledge",
+      "actor": "noema-gate",
+      "action": "gate.run",
+      "triplet": {
+        "embedder_id": "nomic-embed-text-v1.5",
+        "model_id": "nomic-embed-text-v1.5.Q5_K_M.gguf",
+        "manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      "inputs": {
+        "sha256_refs": [
+          "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        ]
+      },
+      "outputs": {
+        "sha256_refs": [
+          "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        ]
+      },
+      "detail": {
+        "recall_at_k": "0.87",
+        "threshold": "0.80",
+        "k": 5
+      },
+      "prev_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "event_hash": null
+    },
+    "canonical_jcs": "{\"action\":\"gate.run\",\"actor\":\"noema-gate\",\"detail\":{\"k\":5,\"recall_at_k\":\"0.87\",\"threshold\":\"0.80\"},\"event_hash\":null,\"event_id\":\"00000000-0000-4000-8000-000000000002\",\"inputs\":{\"sha256_refs\":[\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"]},\"outputs\":{\"sha256_refs\":[\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"]},\"plane\":\"knowledge\",\"prev_hash\":\"1111111111111111111111111111111111111111111111111111111111111111\",\"triplet\":{\"embedder_id\":\"nomic-embed-text-v1.5\",\"manifest_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"model_id\":\"nomic-embed-text-v1.5.Q5_K_M.gguf\"},\"ts\":\"2026-07-02T10:05:00+09:00\"}",
+    "sha256": "a8c3a0ee82c332c1d3f7cf732cefa0434db802a6cd5d2fff32a0525e3094a5ab"
+  },
+  {
+    "name": "gate-stamp-promoted",
+    "event": {
+      "event_id": "00000000-0000-4000-8000-000000000003",
+      "ts": "2026-07-02T10:10:00+09:00",
+      "plane": "knowledge",
+      "actor": "human:taka",
+      "action": "gate.stamp",
+      "triplet": {},
+      "inputs": {
+        "sha256_refs": [
+          "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        ]
+      },
+      "outputs": {
+        "sha256_refs": []
+      },
+      "detail": {
+        "approved_by": "taka",
+        "gate": "G3"
+      },
+      "prev_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+      "event_hash": null
+    },
+    "canonical_jcs": "{\"action\":\"gate.stamp\",\"actor\":\"human:taka\",\"detail\":{\"approved_by\":\"taka\",\"gate\":\"G3\"},\"event_hash\":null,\"event_id\":\"00000000-0000-4000-8000-000000000003\",\"inputs\":{\"sha256_refs\":[\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\"]},\"outputs\":{\"sha256_refs\":[]},\"plane\":\"knowledge\",\"prev_hash\":\"2222222222222222222222222222222222222222222222222222222222222222\",\"triplet\":{},\"ts\":\"2026-07-02T10:10:00+09:00\"}",
+    "sha256": "b0ba52ac62dd1b5b2422ff668be84f58d8eeba8afc58e49eefa9eb6bcf798604"
+  },
+  {
+    "name": "pack-promote",
+    "event": {
+      "event_id": "00000000-0000-4000-8000-000000000004",
+      "ts": "2026-07-02T10:11:00+09:00",
+      "plane": "knowledge",
+      "actor": "noema-gate",
+      "action": "pack.promote",
+      "triplet": {},
+      "inputs": {},
+      "outputs": {},
+      "detail": {
+        "status": "promoted"
+      },
+      "prev_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+      "event_hash": null
+    },
+    "canonical_jcs": "{\"action\":\"pack.promote\",\"actor\":\"noema-gate\",\"detail\":{\"status\":\"promoted\"},\"event_hash\":null,\"event_id\":\"00000000-0000-4000-8000-000000000004\",\"inputs\":{},\"outputs\":{},\"plane\":\"knowledge\",\"prev_hash\":\"3333333333333333333333333333333333333333333333333333333333333333\",\"triplet\":{},\"ts\":\"2026-07-02T10:11:00+09:00\"}",
+    "sha256": "14538914df31b93f5213e8f98e3607197ebc38c27436cc68f62fa670da5ca20d"
+  },
+  {
+    "name": "policy-change",
+    "event": {
+      "event_id": "00000000-0000-4000-8000-000000000005",
+      "ts": "2026-07-02T10:12:00+09:00",
+      "plane": "policy",
+      "actor": "human:max",
+      "action": "policy.change",
+      "triplet": {},
+      "inputs": {
+        "sha256_refs": [
+          "4444444444444444444444444444444444444444444444444444444444444444"
+        ]
+      },
+      "outputs": {
+        "sha256_refs": [
+          "5555555555555555555555555555555555555555555555555555555555555555"
+        ]
+      },
+      "detail": {
+        "field": "g3_promotion.threshold",
+        "reason": "recalibration"
+      },
+      "prev_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+      "event_hash": null
+    },
+    "canonical_jcs": "{\"action\":\"policy.change\",\"actor\":\"human:max\",\"detail\":{\"field\":\"g3_promotion.threshold\",\"reason\":\"recalibration\"},\"event_hash\":null,\"event_id\":\"00000000-0000-4000-8000-000000000005\",\"inputs\":{\"sha256_refs\":[\"4444444444444444444444444444444444444444444444444444444444444444\"]},\"outputs\":{\"sha256_refs\":[\"5555555555555555555555555555555555555555555555555555555555555555\"]},\"plane\":\"policy\",\"prev_hash\":\"4444444444444444444444444444444444444444444444444444444444444444\",\"triplet\":{},\"ts\":\"2026-07-02T10:12:00+09:00\"}",
+    "sha256": "eb68c6b2cd2cc060a04086ef744b607a3e631aef087de1bb7cb48b63f3527494"
+  },
+  {
+    "name": "query-retrieve-future-runtime",
+    "event": {
+      "event_id": "00000000-0000-4000-8000-000000000006",
+      "ts": "2026-07-02T10:13:00+09:00",
+      "plane": "runtime",
+      "actor": "app",
+      "action": "query.retrieve",
+      "triplet": {
+        "embedder_id": "nomic-embed-text-v1.5",
+        "model_id": "nomic-embed-text-v1.5.Q5_K_M.gguf",
+        "manifest_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+      },
+      "inputs": {
+        "sha256_refs": [
+          "7777777777777777777777777777777777777777777777777777777777777777"
+        ]
+      },
+      "outputs": {
+        "sha256_refs": [
+          "8888888888888888888888888888888888888888888888888888888888888888",
+          "9999999999999999999999999999999999999999999999999999999999999999"
+        ]
+      },
+      "detail": {
+        "top_k": 5
+      },
+      "prev_hash": "5555555555555555555555555555555555555555555555555555555555555555",
+      "event_hash": null
+    },
+    "canonical_jcs": "{\"action\":\"query.retrieve\",\"actor\":\"app\",\"detail\":{\"top_k\":5},\"event_hash\":null,\"event_id\":\"00000000-0000-4000-8000-000000000006\",\"inputs\":{\"sha256_refs\":[\"7777777777777777777777777777777777777777777777777777777777777777\"]},\"outputs\":{\"sha256_refs\":[\"8888888888888888888888888888888888888888888888888888888888888888\",\"9999999999999999999999999999999999999999999999999999999999999999\"]},\"plane\":\"runtime\",\"prev_hash\":\"5555555555555555555555555555555555555555555555555555555555555555\",\"triplet\":{\"embedder_id\":\"nomic-embed-text-v1.5\",\"manifest_sha256\":\"6666666666666666666666666666666666666666666666666666666666666666\",\"model_id\":\"nomic-embed-text-v1.5.Q5_K_M.gguf\"},\"ts\":\"2026-07-02T10:13:00+09:00\"}",
+    "sha256": "5c210c1b0fadce4cedd516ed5a25148d0ed47792190786738c3653dd0dbf8aea"
+  },
+  {
+    "name": "query-generate-model-only-label",
+    "event": {
+      "event_id": "00000000-0000-4000-8000-000000000007",
+      "ts": "2026-07-02T10:14:00+09:00",
+      "plane": "runtime",
+      "actor": "app",
+      "action": "query.generate",
+      "triplet": {
+        "embedder_id": "nomic-embed-text-v1.5",
+        "model_id": "llama-3-8b-instruct",
+        "manifest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "inputs": {
+        "sha256_refs": []
+      },
+      "outputs": {
+        "sha256_refs": [
+          "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ]
+      },
+      "detail": {
+        "label": "model-only",
+        "grounded": "false"
+      },
+      "prev_hash": "6666666666666666666666666666666666666666666666666666666666666666",
+      "event_hash": null
+    },
+    "canonical_jcs": "{\"action\":\"query.generate\",\"actor\":\"app\",\"detail\":{\"grounded\":\"false\",\"label\":\"model-only\"},\"event_hash\":null,\"event_id\":\"00000000-0000-4000-8000-000000000007\",\"inputs\":{\"sha256_refs\":[]},\"outputs\":{\"sha256_refs\":[\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"]},\"plane\":\"runtime\",\"prev_hash\":\"6666666666666666666666666666666666666666666666666666666666666666\",\"triplet\":{\"embedder_id\":\"nomic-embed-text-v1.5\",\"manifest_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"model_id\":\"llama-3-8b-instruct\"},\"ts\":\"2026-07-02T10:14:00+09:00\"}",
+    "sha256": "ffcf0fd2c7b041e5732c7a99ad4a72626cf1111a224f21e128005e4f0eb9d2cb"
+  },
+  {
+    "name": "restamp-forced",
+    "event": {
+      "event_id": "00000000-0000-4000-8000-000000000008",
+      "ts": "2026-07-02T10:15:00+09:00",
+      "plane": "knowledge",
+      "actor": "human:taka",
+      "action": "gate.stamp.forced",
+      "triplet": {},
+      "inputs": {},
+      "outputs": {},
+      "detail": {
+        "forced": "true",
+        "previous_status": "promoted"
+      },
+      "prev_hash": "7777777777777777777777777777777777777777777777777777777777777777",
+      "event_hash": null
+    },
+    "canonical_jcs": "{\"action\":\"gate.stamp.forced\",\"actor\":\"human:taka\",\"detail\":{\"forced\":\"true\",\"previous_status\":\"promoted\"},\"event_hash\":null,\"event_id\":\"00000000-0000-4000-8000-000000000008\",\"inputs\":{},\"outputs\":{},\"plane\":\"knowledge\",\"prev_hash\":\"7777777777777777777777777777777777777777777777777777777777777777\",\"triplet\":{},\"ts\":\"2026-07-02T10:15:00+09:00\"}",
+    "sha256": "a57b16ea6c6ff4f49ad806363eabdf2b9c12c5f5b68ebae73ca68edc03c8e0a1"
+  },
+  {
+    "name": "unicode-actor-and-detail",
+    "event": {
+      "event_id": "00000000-0000-4000-8000-000000000009",
+      "ts": "2026-07-02T10:16:00+09:00",
+      "plane": "policy",
+      "actor": "human:タカ",
+      "action": "policy.change",
+      "triplet": {},
+      "inputs": {},
+      "outputs": {},
+      "detail": {
+        "note": "承認済み ✅"
+      },
+      "prev_hash": "8888888888888888888888888888888888888888888888888888888888888888",
+      "event_hash": null
+    },
+    "canonical_jcs": "{\"action\":\"policy.change\",\"actor\":\"human:タカ\",\"detail\":{\"note\":\"承認済み ✅\"},\"event_hash\":null,\"event_id\":\"00000000-0000-4000-8000-000000000009\",\"inputs\":{},\"outputs\":{},\"plane\":\"policy\",\"prev_hash\":\"8888888888888888888888888888888888888888888888888888888888888888\",\"triplet\":{},\"ts\":\"2026-07-02T10:16:00+09:00\"}",
+    "sha256": "8800e925c9cb4246701e1de221946acd9f534bd8dffd063b9623bcde74603167"
+  },
+  {
+    "name": "nested-empty-and-array-ordering",
+    "event": {
+      "event_id": "00000000-0000-4000-8000-00000000000a",
+      "ts": "2026-07-02T10:17:00+09:00",
+      "plane": "knowledge",
+      "actor": "pipeline-build",
+      "action": "pack.build",
+      "triplet": {},
+      "inputs": {
+        "sha256_refs": []
+      },
+      "outputs": {
+        "sha256_refs": []
+      },
+      "detail": {
+        "b_key": 2,
+        "a_key": 1,
+        "nested": {
+          "z": [],
+          "a": {}
+        }
+      },
+      "prev_hash": "9999999999999999999999999999999999999999999999999999999999999999",
+      "event_hash": null
+    },
+    "canonical_jcs": "{\"action\":\"pack.build\",\"actor\":\"pipeline-build\",\"detail\":{\"a_key\":1,\"b_key\":2,\"nested\":{\"a\":{},\"z\":[]}},\"event_hash\":null,\"event_id\":\"00000000-0000-4000-8000-00000000000a\",\"inputs\":{\"sha256_refs\":[]},\"outputs\":{\"sha256_refs\":[]},\"plane\":\"knowledge\",\"prev_hash\":\"9999999999999999999999999999999999999999999999999999999999999999\",\"triplet\":{},\"ts\":\"2026-07-02T10:17:00+09:00\"}",
+    "sha256": "08340e81475b89411171731b6afa7f100512e676669c4150403f45e2597028c9"
+  },
+  {
+    "name": "negative-and-zero-integers",
+    "event": {
+      "event_id": "00000000-0000-4000-8000-00000000000b",
+      "ts": "2026-07-02T10:18:00+09:00",
+      "plane": "knowledge",
+      "actor": "noema-gate",
+      "action": "gate.run",
+      "triplet": {},
+      "inputs": {},
+      "outputs": {},
+      "detail": {
+        "delta": -3,
+        "count": 0
+      },
+      "prev_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "event_hash": null
+    },
+    "canonical_jcs": "{\"action\":\"gate.run\",\"actor\":\"noema-gate\",\"detail\":{\"count\":0,\"delta\":-3},\"event_hash\":null,\"event_id\":\"00000000-0000-4000-8000-00000000000b\",\"inputs\":{},\"outputs\":{},\"plane\":\"knowledge\",\"prev_hash\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"triplet\":{},\"ts\":\"2026-07-02T10:18:00+09:00\"}",
+    "sha256": "e50e54edd77c33d403cd1c1d9a29beca339f9d428371e4a442353e73e7765d26"
+  }
+]

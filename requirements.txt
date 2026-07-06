@@ -33,6 +33,12 @@ pyarrow>=14.0.0
 # CLI entrypoint (EPIC3 Stage 3)
 typer>=0.9.0
 
+# G3 policy manifest parsing (noema-gate; Noema ADR-0003 / v0.8)
+pyyaml>=6.0
+
+# Ed25519 hash-chain signing / evidence package verification (Noema v0.8)
+cryptography>=41.0.0
+
 # Testing
 pytest>=6.0.0
 

@@ -1,0 +1,6 @@
+gates:
+  g3_promotion:
+    k: 5
+    threshold: "0.60"
+    min_goldset_queries: 30
+    hard_floor_queries: 10

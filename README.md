@@ -238,6 +238,38 @@ MIT License (see `LICENSE`). Each model retains its own license; always follow t
 
 ---
 
+## [1.3] - 2026-07 (Noema v0.8 governance — ADR-0003)
+RAGpack **v1.3** manifest + G3 promotion gate + audit chain, additive over v1.2.
+
+### Added
+- **`schemas/ragpack-manifest-1.3.schema.json`**: leaner `embedding` block
+  (`model_id`/`dim`/`normalization`/optional `centroid_sha256`) plus new
+  `provenance.sources[]` (source registry: `source_id`/`sha256`/`license`) and
+  `integrity` (`chunks_sha256`/`embeddings_sha256`) blocks. A pack missing the
+  optional `governance` block is ungoverned; `noema-gate stamp` adds it once
+  promoted. `ragpack.manifest_builder.build_manifest_v1_3` /
+  `ragpack.manifest_validator.validate_manifest` build and validate it.
+- **`nn-pipeline build --manifest-version 1.3`** (opt-in; default remains
+  `1.2`): emits the v1.3 manifest via `cli.build_ragpack.run_pipeline_v13`,
+  deriving `provenance` from the pipeline's own source registry and
+  `integrity` hashes from the written pack files.
+- **`retrieval/harness.py`**: the shared retrieval geometry (query embedding +
+  mean-centering + cosine top-k) extracted from what was previously inline
+  notebook UAT code, so pack QA and the G3 gate share one implementation.
+  `embedder.llamacpp_embedder.LlamaCppEmbedder.embed_query` is its
+  `"search_query: "`-prefixed counterpart to the existing `embed_texts`.
+- **`noema-gate` CLI** (`noema_gate/`) — `run` / `stamp` / `verify` (G3
+  promotion gate, spec-g3-promotion-gate.md): gold-set Recall@k evaluation,
+  human-approval stamping into `governance.promotion`, and CI-entrypoint
+  verification.
+- **`noema_audit/`**: RFC 8785 JCS canonicalizer (numbers-as-strings —
+  floats are rejected in event payloads), hash-chained append-only event
+  emitter, chain verifier, G6 coverage checker, and `noema-audit` CLI.
+  `audit/conformance/vectors.json` is the cross-language contract a future
+  Swift emitter must also satisfy.
+- **`noema_evidence/`**: signed, offline-verifiable evidence package
+  export/verify (Ed25519 via `cryptography`) and `noema-evidence` CLI.
+
 ## [1.2] - 2026-06
 RAGpack **v1.2** — interop with NoesisNoema app v0.4+ (ADR-0011 §5; app-side PRs #97/#98).
 

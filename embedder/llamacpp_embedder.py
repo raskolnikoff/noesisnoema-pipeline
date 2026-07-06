@@ -62,6 +62,10 @@ POOLING: str = "mean"
 #: Task prefix required by nomic-embed-text-v1.5 for document/chunk texts.
 DOCUMENT_TASK_PREFIX: str = "search_document: "
 
+#: Task prefix required by nomic-embed-text-v1.5 for query texts (used by
+#: LlamaCppEmbedder.embed_query — retrieval/QA callers, e.g. noema-gate).
+QUERY_TASK_PREFIX: str = "search_query: "
+
 #: Expected output dimension for nomic-embed-text-v1.5.
 NOMIC_EMBED_DIMENSION: int = 768
 
@@ -271,6 +275,35 @@ class LlamaCppEmbedder:
             rows.append(self._to_matrix(response, expected_count=1))
         matrix = np.vstack(rows).astype(np.float32, copy=False)
         return self._l2_normalize(matrix)
+
+    def embed_query(self, text: str) -> np.ndarray:
+        """
+        Embed a single query string for retrieval (as opposed to
+        ``embed_texts``, which embeds document/chunk text).
+
+        Applies the ``"search_query: "`` task prefix (nomic-embed-text-v1.5 is
+        task-conditioned; queries and documents use different prefixes) and
+        L2-normalizes the result. This is the query-side half of the
+        retrieval geometry previously inlined in the notebook UAT cell
+        (``notebooks/build_ragpack_v1_2.ipynb``); extracted here so
+        ``retrieval.harness`` (and therefore ``noema-gate``) has one
+        authoritative implementation to import instead of re-deriving it.
+
+        Args:
+            text: Raw query string. Do NOT pre-apply the task prefix.
+
+        Returns:
+            np.ndarray of shape ``(D,)``, dtype float32, unit L2 norm.
+
+        Raises:
+            ValueError: if text is empty or the produced vector has zero norm.
+        """
+        if not text or not str(text).strip():
+            raise ValueError("text must not be empty")
+        response = self._model.create_embedding([QUERY_TASK_PREFIX + str(text)])
+        matrix = self._to_matrix(response, expected_count=1)
+        normalized = self._l2_normalize(matrix.astype(np.float32, copy=False))
+        return normalized[0]
 
     # ------------------------------------------------------------------
     # Internal helpers

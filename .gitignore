@@ -416,6 +416,16 @@ exported/
 # create_sample_ragpack.py
 # demo_*.py
 
+# G3 gate demo fixture (Noema ADR-0003 / v0.8) — checked in despite the
+# broad *.npy/*.jsonl ignores above, so 'noema-gate run' is reproducible
+# straight out of a fresh clone (see scripts/build_g3_demo.py).
+!tests/fixtures/g3_demo/
+!tests/fixtures/g3_demo/**
+!tests/fixtures/g3_demo/pack/*.npy
+!tests/fixtures/g3_demo/**/*.jsonl
+# Redundant PackWriter CSV backup of embeddings.npy — not needed to reproduce the demo.
+tests/fixtures/g3_demo/pack/embeddings.csv
+
 # TF-IDF sidecar files
 *.tfidf_vocab.json
 *.tfidf_matrix.npz
