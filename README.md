@@ -19,6 +19,7 @@
 
 - Safely download **GGUF** (often quantized) community models from Hugging Face.
 - Produce a **RAGpack v1.2** (`chunks.json`, `embeddings.npy`, `citations.jsonl`, `manifest.json`) embedded with a llama.cpp GGUF model and importable by NoesisNoema v0.4+.
+- Validate corpus chunks before embedding and emit `quality_report.json` so OCR garbage and publisher back matter do not enter the pack.
 - (Optional) Execute the same workflow on **Google Colab** using our helper notebook.
 
 > **RAGpack v1.2 (current).** Chunks are embedded with `nomic-embed-text-v1.5`
@@ -107,6 +108,46 @@ The chunker now uses **token-based splitting** with configurable overlap instead
 For more details, see `chunker/README.md`.
 
 > RAGpack is model‑agnostic and independent of the GGUF download step.
+
+### Corpus quality validation
+
+Before final pack generation, the CLI runs a deterministic corpus quality gate
+over produced chunks. Accepted chunks continue to embedding and pack writing;
+rejected chunks are excluded. This stage belongs to the pipeline because it
+controls corpus production quality. Retrieval-time behavior, vector search,
+MMR, query processing, prompt generation, and NoesisNoema runtime logic are not
+changed.
+
+The current checks are heuristic and document-agnostic:
+- OCR garbage signals: excessive symbol density, repeated punctuation, abnormal
+  token repetition, isolated uppercase stamp-like fragments, very low
+  alphabetic ratio, and suspicious OCR noise tokens.
+- Publisher back matter signals: publisher catalogues, advertisements, book
+  lists, unrelated title collections, and end-of-book marketing pages.
+
+Each build writes `quality_report.json` beside the pack artifacts. The report is
+machine-readable JSON with fields such as:
+
+```json
+{
+  "quality_report_version": "1.0",
+  "total_chunks": 12,
+  "passed_chunks": 10,
+  "warning_chunks": 1,
+  "rejected_chunks": 1,
+  "warnings": {},
+  "rejection_reasons": {
+    "publisher_back_matter": 1
+  }
+}
+```
+
+The manifest includes backward-compatible quality metadata:
+`quality_report_version`, `validation_timestamp`, and a compact
+`corpus_quality` summary pointing to `quality_report.json`. Future checks can be
+added by extending `quality/corpus_quality.py`; the gate already aggregates
+per-rule warnings and rejection reasons without exposing document contents in
+logs.
 
 ---
 

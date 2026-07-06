@@ -74,7 +74,8 @@ class PackWriter:
                    indexer_metadata: Dict[str, Any],
                    source_documents: List[Dict[str, Any]],
                    output_path: Union[str, Path],
-                   compress: bool = True) -> Path:
+                   compress: bool = True,
+                   extra_manifest_metadata: Optional[Dict[str, Any]] = None) -> Path:
         """
         Write complete RAGpack v1.1 to file or directory.
         
@@ -87,6 +88,7 @@ class PackWriter:
             source_documents: List of source document metadata
             output_path: Output file path (.zip) or directory
             compress: Whether to create compressed zip file
+            extra_manifest_metadata: Optional top-level manifest metadata.
             
         Returns:
             Path to created pack
@@ -97,13 +99,13 @@ class PackWriter:
             return self._write_zip_pack(
                 chunks_with_metadata, embeddings, chunker_metadata,
                 embedder_metadata, indexer_metadata, source_documents,
-                output_path
+                output_path, extra_manifest_metadata
             )
         else:
             return self._write_directory_pack(
                 chunks_with_metadata, embeddings, chunker_metadata,
                 embedder_metadata, indexer_metadata, source_documents,
-                output_path
+                output_path, extra_manifest_metadata
             )
     
     def _write_zip_pack(self, 
@@ -113,14 +115,16 @@ class PackWriter:
                         embedder_metadata: Dict[str, Any],
                         indexer_metadata: Dict[str, Any],
                         source_documents: List[Dict[str, Any]],
-                        zip_path: Path) -> Path:
+                        zip_path: Path,
+                        extra_manifest_metadata: Optional[Dict[str, Any]]) -> Path:
         """Write RAGpack to zip file."""
         
         # Prepare data
         chunks_json = [chunk['text'] for chunk in chunks_with_metadata]
         citations_data = self._generate_citations(chunks_with_metadata)
         manifest_data = self._generate_manifest(
-            chunker_metadata, embedder_metadata, indexer_metadata, source_documents
+            chunker_metadata, embedder_metadata, indexer_metadata, source_documents,
+            extra_manifest_metadata
         )
         
         with zipfile.ZipFile(zip_path, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
@@ -158,7 +162,8 @@ class PackWriter:
                              embedder_metadata: Dict[str, Any],
                              indexer_metadata: Dict[str, Any],
                              source_documents: List[Dict[str, Any]],
-                             dir_path: Path) -> Path:
+                             dir_path: Path,
+                             extra_manifest_metadata: Optional[Dict[str, Any]]) -> Path:
         """Write RAGpack to directory."""
         
         dir_path.mkdir(parents=True, exist_ok=True)
@@ -167,7 +172,8 @@ class PackWriter:
         chunks_json = [chunk['text'] for chunk in chunks_with_metadata]
         citations_data = self._generate_citations(chunks_with_metadata)
         manifest_data = self._generate_manifest(
-            chunker_metadata, embedder_metadata, indexer_metadata, source_documents
+            chunker_metadata, embedder_metadata, indexer_metadata, source_documents,
+            extra_manifest_metadata
         )
         
         # Write chunks.json
@@ -234,29 +240,34 @@ class PackWriter:
                           chunker_metadata: Dict[str, Any],
                           embedder_metadata: Dict[str, Any],
                           indexer_metadata: Dict[str, Any],
-                          source_documents: List[Dict[str, Any]]) -> Dict[str, Any]:
+                          source_documents: List[Dict[str, Any]],
+                          extra_manifest_metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Generate the nested manifest for the configured pack_version."""
         if self.pack_version == "1.2":
+            files = {
+                "chunks": "chunks.json",
+                "embeddings": "embeddings.npy",
+                "citations": "citations.jsonl",
+                "metadata": {
+                    "embeddings_csv": "embeddings.csv",
+                    "manifest": "manifest.json",
+                },
+            }
+            if extra_manifest_metadata and "corpus_quality" in extra_manifest_metadata:
+                files["metadata"]["quality_report"] = "quality_report.json"
             return build_manifest_v1_2(
                 pack_id=self.pack_id,
                 created_at=self.created_at,
                 chunker=chunker_metadata,
                 embedder=embedder_metadata,
                 indexer=indexer_metadata,
-                files={
-                    "chunks": "chunks.json",
-                    "embeddings": "embeddings.npy",
-                    "citations": "citations.jsonl",
-                    "metadata": {
-                        "embeddings_csv": "embeddings.csv",
-                        "manifest": "manifest.json",
-                    },
-                },
+                files=files,
                 source_documents=source_documents,
+                extra_metadata=extra_manifest_metadata,
             )
 
         # Legacy v1.1 shape (deprecated; not consumable by NoesisNoema v0.4+).
-        return {
+        manifest = {
             "pack_version": "1.1",
             "pack_id": self.pack_id,
             "created_at": self.created_at,
@@ -274,3 +285,9 @@ class PackWriter:
             },
             "source_documents": source_documents
         }
+        if extra_manifest_metadata and "corpus_quality" in extra_manifest_metadata:
+            manifest["files"]["metadata"]["quality_report"] = "quality_report.json"
+        for key, value in (extra_manifest_metadata or {}).items():
+            if key not in manifest:
+                manifest[key] = value
+        return manifest
