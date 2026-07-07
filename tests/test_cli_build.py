@@ -16,6 +16,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import pyarrow.parquet as pq
@@ -79,6 +80,36 @@ def _run(input_dir: Path, output_dir: Path, **kwargs) -> PipelineResult:
     )
     defaults.update(kwargs)
     return run_pipeline(input_dir=input_dir, output_dir=output_dir, **defaults)
+
+
+class _FastEmbeddingMetadata:
+    embedding_model = "test-fast-embedder"
+    embedding_dimension = 4
+    model_hash = "f" * 64
+    dtype = "float32"
+    embedding_version = "test"
+
+
+class _FastEmbeddingResult:
+    def __init__(self, chunks):
+        self.embeddings = np.zeros((len(chunks), 4), dtype=np.float32)
+        self.chunk_ids = [chunk.chunk_id for chunk in chunks]
+
+
+class _FastDeterministicEmbedder:
+    metadata = _FastEmbeddingMetadata()
+
+    def __init__(self, model_name="test-fast-embedder"):
+        self.model_name = model_name
+
+    def embed_chunks(self, chunks):
+        return _FastEmbeddingResult(chunks)
+
+
+def _run_fast(input_dir: Path, output_dir: Path, **kwargs) -> PipelineResult:
+    with patch("cli.build_ragpack.DeterministicEmbedder", _FastDeterministicEmbedder), \
+         patch("ragpack.ragpack_builder.DeterministicEmbedder", _FastDeterministicEmbedder):
+        return _run(input_dir, output_dir, **kwargs)
 
 
 # ---------------------------------------------------------------------------
@@ -272,6 +303,45 @@ class TestCliBuildSmoke(unittest.TestCase):
             self.assertIn(col, table.schema.names,
                           f"Required column '{col}' missing from chunks.parquet")
 
+    def test_quality_report_written_and_manifest_metadata_added(self):
+        result = _run_fast(self._input_dir, self._output_dir)
+        report = json.loads(
+            result.written_paths["quality_report"].read_text(encoding="utf-8")
+        )
+        manifest = json.loads(
+            result.written_paths["manifest"].read_text(encoding="utf-8")
+        )
+
+        self.assertEqual(report["quality_report_version"], "1.0")
+        self.assertEqual(report["total_chunks"], result.chunk_count)
+        self.assertEqual(report["rejected_chunks"], 0)
+        self.assertEqual(manifest["corpus_quality"]["accepted_chunks"], result.chunk_count)
+        self.assertEqual(manifest["corpus_quality"]["quality_report"], "quality_report.json")
+
+    def test_publisher_back_matter_is_filtered_from_pack(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            input_dir = _make_input_dir(tmp, docs={
+                "clean.txt": _DOC_A,
+                "catalogue.txt": (
+                    "Publisher's Catalogue\n"
+                    "Recent Publications and Selected Titles\n"
+                    "The History of Thought. By A. Scholar. Cloth, $2.00 net.\n"
+                    "Studies in Modern Life. By B. Writer. Volume II.\n"
+                    "A Complete List of Books and Forthcoming Editions.\n"
+                ),
+            })
+            output_dir = Path(tmp) / "ragpack"
+
+            result = _run_fast(input_dir, output_dir, chunk_size=80, overlap=0)
+            report = json.loads(
+                result.written_paths["quality_report"].read_text(encoding="utf-8")
+            )
+            table = pq.read_table(str(result.written_paths["chunks"]))
+
+        self.assertEqual(report["rejection_reasons"]["publisher_back_matter"], 1)
+        self.assertEqual(table.num_rows, report["accepted_chunks"])
+        self.assertEqual(result.chunk_count, report["accepted_chunks"])
+
     def test_file_count_matches_input_files(self):
         result = self._result()
         self.assertEqual(result.file_count, 2)
@@ -464,4 +534,3 @@ class TestPipelineGuards(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

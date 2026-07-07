@@ -32,6 +32,7 @@ import hashlib
 import json
 import os
 import warnings
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
@@ -42,6 +43,7 @@ from chunker import TokenChunker
 from chunker.chunk_record import ChunkRecord
 from embedder.deterministic_embedder import DEFAULT_MODEL_NAME, DeterministicEmbedder
 from extraction.text_quality import assert_text_quality
+from quality import validate_corpus_chunks, write_quality_report
 from ragpack import RagpackBuilder, RagpackWriter
 from writer import PackWriter
 
@@ -246,22 +248,53 @@ def run_pipeline(
 
     if verbose:
         typer.echo(f"  Total chunks: {len(all_chunks)}")
+        typer.echo("  Validating corpus quality")
+
+    accepted_chunks, quality_report = validate_corpus_chunks(
+        all_chunks,
+        validation_timestamp=creation_time,
+    )
+    quality_report_path = write_quality_report(quality_report, output_dir)
+    accepted_by_source = Counter(chunk.source_id for chunk in accepted_chunks)
+    for doc in source_docs:
+        original_count = doc["chunk_count"]
+        accepted_count = accepted_by_source.get(doc["source_id"], 0)
+        doc["chunk_count"] = accepted_count
+        doc["rejected_chunk_count"] = original_count - accepted_count
+
+    if verbose:
+        typer.echo(
+            "  Quality gate: "
+            f"accepted {quality_report.accepted_chunks}/{quality_report.total_chunks}; "
+            f"warnings {quality_report.warning_chunks}; "
+            f"rejected {quality_report.rejected_chunks}"
+        )
+        typer.echo(f"  Quality report: {quality_report_path}")
+
+    if not accepted_chunks:
+        raise ValueError(
+            "Corpus quality gate rejected all chunks; see quality_report.json"
+        )
+
+    if verbose:
         typer.echo(f"  Loading embedder: {model_name}")
 
     embedder = DeterministicEmbedder(model_name)
     builder  = RagpackBuilder(embedder)
     ragpack  = builder.build(
-        chunks=all_chunks,
+        chunks=accepted_chunks,
         creation_time=creation_time,
         source_documents=source_docs,
+        extra_metadata=quality_report.manifest_metadata(),
     )
 
     writer = RagpackWriter()
     written_paths = writer.write(ragpack, output_dir)
+    written_paths["quality_report"] = quality_report_path
 
     return PipelineResult(
         output_dir=output_dir.resolve(),
-        chunk_count=len(all_chunks),
+        chunk_count=len(accepted_chunks),
         file_count=len(source_files),
         source_files=source_files,
         written_paths=written_paths,
@@ -383,17 +416,52 @@ def _run_pipeline_llamacpp(
 
     if verbose:
         typer.echo(f"  Total chunks: {len(chunks_with_metadata)}")
+        typer.echo("  Validating corpus quality")
+
+    accepted_chunks, quality_report = validate_corpus_chunks(
+        chunks_with_metadata,
+        validation_timestamp=creation_time,
+    )
+    output_dir.mkdir(parents=True, exist_ok=True)
+    quality_report_path = write_quality_report(quality_report, output_dir)
+    accepted_by_doc = Counter(chunk.get("doc_id") for chunk in accepted_chunks)
+    original_by_doc = Counter(chunk.get("doc_id") for chunk in chunks_with_metadata)
+    for doc in source_docs:
+        doc_id = doc["doc_id"]
+        doc["chunk_count"] = accepted_by_doc.get(doc_id, 0)
+        doc["rejected_chunk_count"] = (
+            original_by_doc.get(doc_id, 0) - accepted_by_doc.get(doc_id, 0)
+        )
+
+    if verbose:
+        typer.echo(
+            "  Quality gate: "
+            f"accepted {quality_report.accepted_chunks}/{quality_report.total_chunks}; "
+            f"warnings {quality_report.warning_chunks}; "
+            f"rejected {quality_report.rejected_chunks}"
+        )
+        typer.echo(f"  Quality report: {quality_report_path}")
+
+    if not accepted_chunks:
+        raise ValueError(
+            "Corpus quality gate rejected all chunks; see quality_report.json"
+        )
+
+    for row_index, chunk in enumerate(accepted_chunks):
+        chunk["chunk_index"] = row_index
+
+    if verbose:
         typer.echo(f"  Loading llama.cpp embedder: {gguf_path.name}")
 
     embedder = LlamaCppEmbedder(str(gguf_path))
-    texts = [c["text"] for c in chunks_with_metadata]
+    texts = [c["text"] for c in accepted_chunks]
     embeddings = embedder.embed_texts(texts)
 
     chunker_metadata = chunker.get_chunker_metadata()
     embedder_metadata = embedder.metadata.to_dict()
     indexer_metadata = {
         "document_count": len(source_files),
-        "chunk_count": len(chunks_with_metadata),
+        "chunk_count": len(accepted_chunks),
         "timestamp": creation_time,
     }
 
@@ -412,7 +480,7 @@ def _run_pipeline_llamacpp(
     )
     output_dir.mkdir(parents=True, exist_ok=True)
     pack_writer.write_pack(
-        chunks_with_metadata=chunks_with_metadata,
+        chunks_with_metadata=accepted_chunks,
         embeddings=embeddings,
         chunker_metadata=chunker_metadata,
         embedder_metadata=embedder_metadata,
@@ -420,6 +488,7 @@ def _run_pipeline_llamacpp(
         source_documents=source_docs,
         output_path=output_dir,
         compress=False,
+        extra_manifest_metadata=quality_report.manifest_metadata(),
     )
 
     written_paths = {
@@ -427,11 +496,12 @@ def _run_pipeline_llamacpp(
         "embeddings": output_dir / "embeddings.npy",
         "chunks":     output_dir / "chunks.json",
         "citations":  output_dir / "citations.jsonl",
+        "quality_report": quality_report_path,
     }
 
     return PipelineResult(
         output_dir=output_dir.resolve(),
-        chunk_count=len(chunks_with_metadata),
+        chunk_count=len(accepted_chunks),
         file_count=len(source_files),
         source_files=source_files,
         written_paths=written_paths,
@@ -742,4 +812,3 @@ def build(
 
 if __name__ == "__main__":
     app()
-

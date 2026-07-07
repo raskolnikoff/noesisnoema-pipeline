@@ -114,6 +114,7 @@ class RagpackBuilder:
         chunks: Sequence[ChunkRecord],
         creation_time: str,
         source_documents: list | None = None,
+        extra_metadata: dict | None = None,
     ) -> Ragpack:
         """
         Embed all chunks and assemble the complete Ragpack.
@@ -125,6 +126,8 @@ class RagpackBuilder:
                               patching datetime.
             source_documents: Optional list of source document metadata dicts
                               to embed in the manifest.
+            extra_metadata:   Optional manifest metadata that does not override
+                              required RAGpack fields.
 
         Returns:
             A fully populated, immutable Ragpack.
@@ -168,6 +171,7 @@ class RagpackBuilder:
             creation_time=creation_time,
             embedding_version=meta.embedding_version,
             source_documents=source_documents,
+            extra_metadata=extra_metadata,
         )
         manifest = manifest_builder.build()
 
@@ -177,4 +181,3 @@ class RagpackBuilder:
             manifest=manifest,
             chunk_ids=embedding_result.chunk_ids,
         )
-

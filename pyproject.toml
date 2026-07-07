@@ -37,11 +37,12 @@ noema-audit = "noema_audit.cli:app"
 noema-evidence = "noema_evidence.cli:app"
 
 [tool.setuptools.packages.find]
+# Auto-discovery (rather than an explicit include list) so new top-level
+# packages are picked up automatically instead of silently missing from
+# the editable install (e.g. `quality` was added in 81661af but never
+# added to the old explicit list).
 where = ["."]
-include = [
-    "chunker*", "embedder*", "ragpack*", "cli*", "writer*", "extraction*",
-    "retrieval*", "noema_gate*", "noema_audit*", "noema_evidence*",
-]
+exclude = ["tests*"]
 
 [tool.setuptools.package-data]
 # Bundled common-English word list used by the extraction-quality gate.

@@ -73,6 +73,7 @@ def build_manifest_v1_2(
     indexer: dict[str, Any] | None = None,
     files: dict[str, Any] | None = None,
     source_documents: list | None = None,
+    extra_metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
     Build the canonical, nested RAGpack **v1.2** manifest dict.
@@ -95,6 +96,8 @@ def build_manifest_v1_2(
         indexer:          Optional indexer block (document/chunk counts, ts).
         files:            Optional file map; defaults to DEFAULT_V1_2_FILES.
         source_documents: Optional list of source-document dicts.
+        extra_metadata:   Optional top-level fields for backward-compatible
+                          sidecar metadata.
 
     Returns:
         Nested manifest dict with ``pack_version == "1.2"``.
@@ -142,6 +145,11 @@ def build_manifest_v1_2(
         "files": dict(files) if files else dict(DEFAULT_V1_2_FILES),
         "source_documents": list(source_documents) if source_documents else [],
     }
+
+    for key, value in (extra_metadata or {}).items():
+        if key not in manifest:
+            manifest[key] = value
+
     return manifest
 
 
@@ -386,4 +394,3 @@ class ManifestBuilder:
         body["manifest_hash"] = _manifest_hash(body)
 
         return body
-
