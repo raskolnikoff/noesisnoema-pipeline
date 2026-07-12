@@ -430,3 +430,7 @@ tests/fixtures/g3_demo/pack/embeddings.csv
 *.tfidf_vocab.json
 *.tfidf_matrix.npz
 *.tfidf_vectorizer.pkl
+
+## misc
+.idea/modules.xml
+.idea/vcs.xml
