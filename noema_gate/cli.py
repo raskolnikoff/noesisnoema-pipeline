@@ -4,7 +4,7 @@ noema-gate — CLI entrypoint for the G3 promotion gate
 
 Usage
 -----
-    noema-gate run   --pack <pack_dir> --goldset <goldset.jsonl> --policy <noema-policy.yaml> [--out <report.json>] [--gguf <path>] [--audit-log <log.jsonl>]
+    noema-gate run   --pack <pack_dir> --goldset <goldset.jsonl> --policy <noema-policy.yaml> [--out <report.json>] [--embedder llama-cpp|llama-server] [--server-url <url>] [--gguf <path>] [--audit-log <log.jsonl>]
     noema-gate stamp --pack <pack_dir> --report <report.json> --approved-by <id> [--force] [--policy <noema-policy.yaml>] [--audit-log <log.jsonl>]
     noema-gate verify --pack <pack_dir>
 
@@ -12,6 +12,23 @@ Usage
 table: it is the only way to detect "policy edited between run and stamp"
 (failure mode 4) without inventing an out-of-band lookup, so ``stamp``
 accepts (but does not require) the same ``--policy`` path used for ``run``.
+
+``run --embedder`` (pluggable query embedder, Session D3)
+-----------------------------------------------------------
+``run`` supports two query-embedder backends:
+
+- ``llama-cpp`` (default — preserves prior behaviour): in-process
+  llama-cpp-python binding, loaded from ``--gguf``/``NOEMA_GGUF_PATH``.
+- ``llama-server``: HTTP calls to an already-running
+  ``llama-server --embedding`` process (``retrieval.llama_server_embedder``),
+  so query embeddings share the exact inference path used to embed pack
+  documents when a pack was built the same way (Session D2). ``--gguf`` is
+  optional here — if given, its file hash becomes the audit event's
+  ``model_id``; server identity is not otherwise queryable over HTTP.
+
+This is the single audited execution path for the gate: what was previously
+a one-off script (``scripts/run_g3_demo_gate.py``, Session D2) wiring
+``retrieval.llama_server_embedder`` by hand is now this CLI flag.
 """
 
 from __future__ import annotations
@@ -24,7 +41,9 @@ from typing import Optional
 import typer
 
 from cli.build_ragpack import GGUF_ENV_VAR
+from embedder.deterministic_embedder import _sha256_file
 from noema_audit import AuditEmitter
+from retrieval.llama_server_embedder import DEFAULT_SERVER_URL
 
 from .core import GateRefusalError, run_gate, stamp_gate, verify_gate
 from .goldset import GoldsetError
@@ -37,6 +56,9 @@ app = typer.Typer(
     add_completion=False,
     no_args_is_help=True,
 )
+
+#: Valid values for `run --embedder`.
+_VALID_EMBEDDERS = ("llama-cpp", "llama-server")
 
 
 def _resolve_gguf_path(gguf: Optional[str]) -> Path:
@@ -54,6 +76,34 @@ def _resolve_gguf_path(gguf: Optional[str]) -> Path:
     return path
 
 
+def _optional_gguf_path(gguf: Optional[str]) -> Optional[Path]:
+    """Like `_resolve_gguf_path`, but returns None instead of requiring a value."""
+    if not gguf:
+        return None
+    path = Path(gguf)
+    if not path.is_file():
+        typer.echo(f"ERROR: GGUF path '{path}' is not a file.", err=True)
+        raise typer.Exit(code=1)
+    return path
+
+
+def _check_server_health(server_url: str, timeout: float = 5.0) -> None:
+    """Fail fast with a clear error if the llama.cpp embedding server is unreachable."""
+    import urllib.error
+    import urllib.request
+
+    try:
+        with urllib.request.urlopen(f"{server_url.rstrip('/')}/health", timeout=timeout):
+            pass
+    except (urllib.error.URLError, OSError) as exc:
+        typer.echo(
+            f"ERROR: llama-server at {server_url} is not reachable ({exc}). "
+            "Start it with: llama-server --embedding -m <gguf> --port <port>",
+            err=True,
+        )
+        raise typer.Exit(code=1) from exc
+
+
 def _manifest_sha256(pack_dir: Path) -> str:
     return hashlib.sha256((pack_dir / "manifest.json").read_bytes()).hexdigest()
 
@@ -66,26 +116,65 @@ def run(
     out: Optional[Path] = typer.Option(
         None, "--out", help="Report output path (default: <pack>/report.json)."
     ),
+    embedder: str = typer.Option(
+        "llama-cpp",
+        "--embedder",
+        help=(
+            "Query embedder backend: 'llama-cpp' (in-process llama-cpp-python, "
+            "default — preserves prior behavior) or 'llama-server' (HTTP calls "
+            "to a running `llama-server --embedding` process)."
+        ),
+    ),
+    server_url: str = typer.Option(
+        DEFAULT_SERVER_URL,
+        "--server-url",
+        help="llama-server base URL. Only used with --embedder llama-server.",
+    ),
     gguf: Optional[str] = typer.Option(
-        None, "--gguf", help=f"Embedder GGUF path. Falls back to {GGUF_ENV_VAR}."
+        None,
+        "--gguf",
+        help=(
+            f"Embedder GGUF path. Required for --embedder llama-cpp (falls back "
+            f"to {GGUF_ENV_VAR}). Optional for --embedder llama-server: if given, "
+            "its file hash is recorded as the audit event's model_id."
+        ),
     ),
     audit_log: Optional[Path] = typer.Option(
         None, "--audit-log", help="Optional audit log to append a gate.run event to."
     ),
 ) -> None:
     """Run gold-set retrieval evaluation; exit 0 iff recall_at_k >= threshold."""
-    from embedder.llamacpp_embedder import LlamaCppEmbedder
+    if embedder not in _VALID_EMBEDDERS:
+        typer.echo(
+            f"ERROR: --embedder must be one of {_VALID_EMBEDDERS}, got {embedder!r}.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
 
-    gguf_path = _resolve_gguf_path(gguf)
-    embedder = LlamaCppEmbedder(str(gguf_path))
+    if embedder == "llama-cpp":
+        from embedder.llamacpp_embedder import LlamaCppEmbedder
+
+        gguf_path = _resolve_gguf_path(gguf)
+        query_embedder = LlamaCppEmbedder(str(gguf_path))
+        embed_query_fn = query_embedder.embed_query
+        embedder_id = query_embedder.metadata.embedding_model
+        model_hash = query_embedder.metadata.model_hash
+    else:
+        from retrieval.llama_server_embedder import make_embed_query_fn
+
+        _check_server_health(server_url)
+        gguf_path = _optional_gguf_path(gguf)
+        embed_query_fn = make_embed_query_fn(server_url=server_url)
+        embedder_id = gguf_path.name if gguf_path else f"llama-server:{server_url}"
+        model_hash = _sha256_file(str(gguf_path)) if gguf_path else ""
 
     try:
         result = run_gate(
             pack_dir=pack,
             goldset_path=goldset,
             policy_path=policy,
-            embed_query_fn=embedder.embed_query,
-            embedder_id=embedder.metadata.embedding_model,
+            embed_query_fn=embed_query_fn,
+            embedder_id=embedder_id,
             out_path=out,
         )
     except GateRefusalError as exc:
@@ -103,7 +192,7 @@ def run(
             action="gate.run",
             triplet={
                 "embedder_id": report.embedder_id,
-                "model_id": embedder.metadata.model_hash,
+                "model_id": model_hash,
                 "manifest_sha256": _manifest_sha256(pack),
             },
             inputs={"sha256_refs": [report.policy_sha256, report.goldset_sha256]},
