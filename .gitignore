@@ -426,6 +426,10 @@ exported/
 # Redundant PackWriter CSV backup of embeddings.npy — not needed to reproduce the demo.
 tests/fixtures/g3_demo/pack/embeddings.csv
 
+# Locally-built calibration packs — embeddings/chunks already caught by
+# *.npy/*.jsonl above; manifest.json is the one file type those miss.
+packs/**/manifest.json
+
 # TF-IDF sidecar files
 *.tfidf_vocab.json
 *.tfidf_matrix.npz

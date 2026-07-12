@@ -1,0 +1,656 @@
+[
+  {
+    "query_id": "q000",
+    "query": "What does human freedom consist of?",
+    "expected_ids": [
+      "0"
+    ],
+    "retrieved_top_k": [
+      "0",
+      "17",
+      "1",
+      "8",
+      "18"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q001",
+    "query": "What is human bondage?",
+    "expected_ids": [
+      "1"
+    ],
+    "retrieved_top_k": [
+      "1",
+      "0",
+      "17",
+      "9",
+      "5"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q002",
+    "query": "What is substance?",
+    "expected_ids": [
+      "2"
+    ],
+    "retrieved_top_k": [
+      "2",
+      "3",
+      "4",
+      "17",
+      "7"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q003",
+    "query": "What is an attribute?",
+    "expected_ids": [
+      "3"
+    ],
+    "retrieved_top_k": [
+      "3",
+      "4",
+      "10",
+      "8",
+      "2"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q004",
+    "query": "What is God according to this text?",
+    "expected_ids": [
+      "4"
+    ],
+    "retrieved_top_k": [
+      "4",
+      "5",
+      "8",
+      "9",
+      "13"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q005",
+    "query": "What is the order and connection of ideas?",
+    "expected_ids": [
+      "6"
+    ],
+    "retrieved_top_k": [
+      "6",
+      "12",
+      "11",
+      "1",
+      "13"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q006",
+    "query": "What is an emotion?",
+    "expected_ids": [
+      "7"
+    ],
+    "retrieved_top_k": [
+      "7",
+      "9",
+      "8",
+      "15",
+      "3"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q007",
+    "query": "What is joy?",
+    "expected_ids": [
+      "8"
+    ],
+    "retrieved_top_k": [
+      "8",
+      "9",
+      "7",
+      "11",
+      "5"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q008",
+    "query": "What is sadness?",
+    "expected_ids": [
+      "9"
+    ],
+    "retrieved_top_k": [
+      "9",
+      "8",
+      "7",
+      "1",
+      "16"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q009",
+    "query": "What is virtue?",
+    "expected_ids": [
+      "10"
+    ],
+    "retrieved_top_k": [
+      "10",
+      "19",
+      "8",
+      "16",
+      "3"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q010",
+    "query": "What is the highest form of knowledge?",
+    "expected_ids": [
+      "11"
+    ],
+    "retrieved_top_k": [
+      "11",
+      "6",
+      "12",
+      "8",
+      "5"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q011",
+    "query": "How is the power of the mind defined?",
+    "expected_ids": [
+      "12"
+    ],
+    "retrieved_top_k": [
+      "12",
+      "5",
+      "14",
+      "7",
+      "11"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q012",
+    "query": "Does nature have a fixed goal?",
+    "expected_ids": [
+      "13"
+    ],
+    "retrieved_top_k": [
+      "13",
+      "16",
+      "0",
+      "19",
+      "18"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q013",
+    "query": "In what sense is the mind eternal?",
+    "expected_ids": [
+      "14"
+    ],
+    "retrieved_top_k": [
+      "14",
+      "5",
+      "12",
+      "4",
+      "19"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q014",
+    "query": "Why does the intellect need attributes to grasp what substance really is?",
+    "expected_ids": [
+      "3"
+    ],
+    "retrieved_top_k": [
+      "3",
+      "2",
+      "11",
+      "12",
+      "19"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q015",
+    "query": "How does the mind relate to God's own intellect?",
+    "expected_ids": [
+      "5"
+    ],
+    "retrieved_top_k": [
+      "5",
+      "14",
+      "12",
+      "11",
+      "19"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q016",
+    "query": "What makes something the essential drive behind human action?",
+    "expected_ids": [
+      "15"
+    ],
+    "retrieved_top_k": [
+      "0",
+      "1",
+      "15",
+      "13",
+      "16"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q017",
+    "query": "Why should people look out for their own interests according to reason?",
+    "expected_ids": [
+      "16"
+    ],
+    "retrieved_top_k": [
+      "16",
+      "19",
+      "1",
+      "0",
+      "10"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q018",
+    "query": "How is the human body structured, in terms of its parts?",
+    "expected_ids": [
+      "17"
+    ],
+    "retrieved_top_k": [
+      "17",
+      "5",
+      "1",
+      "6",
+      "11"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q019",
+    "query": "What ultimately makes a thing free rather than determined by outside forces?",
+    "expected_ids": [
+      "18"
+    ],
+    "retrieved_top_k": [
+      "18",
+      "0",
+      "1",
+      "13",
+      "16"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q020",
+    "query": "What's the ultimate goal that ethics is trying to achieve?",
+    "expected_ids": [
+      "19"
+    ],
+    "retrieved_top_k": [
+      "19",
+      "13",
+      "11",
+      "16",
+      "0"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q021",
+    "query": "so like why do bad feelings happen to us",
+    "expected_ids": [
+      "9"
+    ],
+    "retrieved_top_k": [
+      "1",
+      "9",
+      "16",
+      "7",
+      "13"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q022",
+    "query": "whats the deal with joy then",
+    "expected_ids": [
+      "8"
+    ],
+    "retrieved_top_k": [
+      "8",
+      "9",
+      "19",
+      "16",
+      "6"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q023",
+    "query": "In simple terms, when do we say someone acted virtuously?",
+    "expected_ids": [
+      "10"
+    ],
+    "retrieved_top_k": [
+      "10",
+      "19",
+      "16",
+      "9",
+      "8"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q024",
+    "query": "What kind of knowledge lets us grasp the true nature of things directly, without inference?",
+    "expected_ids": [
+      "11"
+    ],
+    "retrieved_top_k": [
+      "11",
+      "13",
+      "18",
+      "0",
+      "12"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q025",
+    "query": "is there a point to nature or is it all random",
+    "expected_ids": [
+      "13"
+    ],
+    "retrieved_top_k": [
+      "13",
+      "16",
+      "0",
+      "18",
+      "6"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q026",
+    "query": "How can a mind be said to exist beyond time?",
+    "expected_ids": [
+      "14"
+    ],
+    "retrieved_top_k": [
+      "14",
+      "5",
+      "12",
+      "11",
+      "13"
+    ],
+    "hit": 1,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q027",
+    "query": "How do freedom and bondage relate to acting from one's own nature versus being overpowered by passions?",
+    "expected_ids": [
+      "0",
+      "1"
+    ],
+    "retrieved_top_k": [
+      "1",
+      "0",
+      "16",
+      "10",
+      "18"
+    ],
+    "hit": 2,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q028",
+    "query": "What's the difference between the two ways this text defines a free thing?",
+    "expected_ids": [
+      "0",
+      "18"
+    ],
+    "retrieved_top_k": [
+      "18",
+      "6",
+      "0",
+      "8",
+      "1"
+    ],
+    "hit": 2,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q029",
+    "query": "How does an attribute relate to substance, and how does that connect to the definition of God?",
+    "expected_ids": [
+      "3",
+      "4"
+    ],
+    "retrieved_top_k": [
+      "3",
+      "4",
+      "2",
+      "6",
+      "8"
+    ],
+    "hit": 2,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q030",
+    "query": "Why is God described as a substance with infinite attributes?",
+    "expected_ids": [
+      "2",
+      "4"
+    ],
+    "retrieved_top_k": [
+      "4",
+      "3",
+      "2",
+      "5",
+      "13"
+    ],
+    "hit": 2,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q031",
+    "query": "How does the mind's relationship to God's intellect connect to the idea that ideas and things share the same order?",
+    "expected_ids": [
+      "5",
+      "6"
+    ],
+    "retrieved_top_k": [
+      "6",
+      "5",
+      "14",
+      "12",
+      "11"
+    ],
+    "hit": 2,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q032",
+    "query": "whats the connection between feelings, being happy, and being sad in this philosophy",
+    "expected_ids": [
+      "7",
+      "8",
+      "9"
+    ],
+    "retrieved_top_k": [
+      "9",
+      "8",
+      "7",
+      "6",
+      "19"
+    ],
+    "hit": 3,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q033",
+    "query": "How do joy and sadness both describe a passage between different degrees of perfection?",
+    "expected_ids": [
+      "8",
+      "9"
+    ],
+    "retrieved_top_k": [
+      "8",
+      "9",
+      "6",
+      "7",
+      "16"
+    ],
+    "hit": 2,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q034",
+    "query": "How does acting virtuously relate to what reason demands of us?",
+    "expected_ids": [
+      "10",
+      "16"
+    ],
+    "retrieved_top_k": [
+      "16",
+      "10",
+      "19",
+      "1",
+      "0"
+    ],
+    "hit": 2,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q035",
+    "query": "How does virtue connect to the definition of a free thing acting from necessity of its own nature?",
+    "expected_ids": [
+      "10",
+      "18"
+    ],
+    "retrieved_top_k": [
+      "10",
+      "18",
+      "0",
+      "16",
+      "2"
+    ],
+    "hit": 2,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q036",
+    "query": "How does the highest kind of knowledge relate to the mind's eternity?",
+    "expected_ids": [
+      "11",
+      "14"
+    ],
+    "retrieved_top_k": [
+      "11",
+      "14",
+      "5",
+      "19",
+      "12"
+    ],
+    "hit": 2,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q037",
+    "query": "whats adequate ideas got to do with desire and blind wanting",
+    "expected_ids": [
+      "12",
+      "15"
+    ],
+    "retrieved_top_k": [
+      "12",
+      "16",
+      "15",
+      "6",
+      "1"
+    ],
+    "hit": 2,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q038",
+    "query": "If nature has no fixed goal, how can ethics still have a final aim?",
+    "expected_ids": [
+      "13",
+      "19"
+    ],
+    "retrieved_top_k": [
+      "13",
+      "19",
+      "16",
+      "0",
+      "10"
+    ],
+    "hit": 2,
+    "recall": 1.0
+  },
+  {
+    "query_id": "q039",
+    "query": "How does the parallel between ideas and things extend to the composition of the human body?",
+    "expected_ids": [
+      "6",
+      "17"
+    ],
+    "retrieved_top_k": [
+      "6",
+      "17",
+      "5",
+      "12",
+      "2"
+    ],
+    "hit": 2,
+    "recall": 1.0
+  }
+]
