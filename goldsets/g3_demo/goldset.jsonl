@@ -1,0 +1,40 @@
+{"query_id": "q000", "query": "What does human freedom consist of?", "relevant_chunk_ids": ["0"]}
+{"query_id": "q001", "query": "What is human bondage?", "relevant_chunk_ids": ["1"]}
+{"query_id": "q002", "query": "What is substance?", "relevant_chunk_ids": ["2"]}
+{"query_id": "q003", "query": "What is an attribute?", "relevant_chunk_ids": ["3"]}
+{"query_id": "q004", "query": "What is God according to this text?", "relevant_chunk_ids": ["4"]}
+{"query_id": "q005", "query": "What is the order and connection of ideas?", "relevant_chunk_ids": ["6"]}
+{"query_id": "q006", "query": "What is an emotion?", "relevant_chunk_ids": ["7"]}
+{"query_id": "q007", "query": "What is joy?", "relevant_chunk_ids": ["8"]}
+{"query_id": "q008", "query": "What is sadness?", "relevant_chunk_ids": ["9"]}
+{"query_id": "q009", "query": "What is virtue?", "relevant_chunk_ids": ["10"]}
+{"query_id": "q010", "query": "What is the highest form of knowledge?", "relevant_chunk_ids": ["11"]}
+{"query_id": "q011", "query": "How is the power of the mind defined?", "relevant_chunk_ids": ["12"]}
+{"query_id": "q012", "query": "Does nature have a fixed goal?", "relevant_chunk_ids": ["13"]}
+{"query_id": "q013", "query": "In what sense is the mind eternal?", "relevant_chunk_ids": ["14"]}
+{"query_id": "q014", "query": "Why does the intellect need attributes to grasp what substance really is?", "relevant_chunk_ids": ["3"]}
+{"query_id": "q015", "query": "How does the mind relate to God's own intellect?", "relevant_chunk_ids": ["5"]}
+{"query_id": "q016", "query": "What makes something the essential drive behind human action?", "relevant_chunk_ids": ["15"]}
+{"query_id": "q017", "query": "Why should people look out for their own interests according to reason?", "relevant_chunk_ids": ["16"]}
+{"query_id": "q018", "query": "How is the human body structured, in terms of its parts?", "relevant_chunk_ids": ["17"]}
+{"query_id": "q019", "query": "What ultimately makes a thing free rather than determined by outside forces?", "relevant_chunk_ids": ["18"]}
+{"query_id": "q020", "query": "What's the ultimate goal that ethics is trying to achieve?", "relevant_chunk_ids": ["19"]}
+{"query_id": "q021", "query": "so like why do bad feelings happen to us", "relevant_chunk_ids": ["9"]}
+{"query_id": "q022", "query": "whats the deal with joy then", "relevant_chunk_ids": ["8"]}
+{"query_id": "q023", "query": "In simple terms, when do we say someone acted virtuously?", "relevant_chunk_ids": ["10"]}
+{"query_id": "q024", "query": "What kind of knowledge lets us grasp the true nature of things directly, without inference?", "relevant_chunk_ids": ["11"]}
+{"query_id": "q025", "query": "is there a point to nature or is it all random", "relevant_chunk_ids": ["13"]}
+{"query_id": "q026", "query": "How can a mind be said to exist beyond time?", "relevant_chunk_ids": ["14"]}
+{"query_id": "q027", "query": "How do freedom and bondage relate to acting from one's own nature versus being overpowered by passions?", "relevant_chunk_ids": ["0", "1"]}
+{"query_id": "q028", "query": "What's the difference between the two ways this text defines a free thing?", "relevant_chunk_ids": ["0", "18"]}
+{"query_id": "q029", "query": "How does an attribute relate to substance, and how does that connect to the definition of God?", "relevant_chunk_ids": ["3", "4"]}
+{"query_id": "q030", "query": "Why is God described as a substance with infinite attributes?", "relevant_chunk_ids": ["2", "4"]}
+{"query_id": "q031", "query": "How does the mind's relationship to God's intellect connect to the idea that ideas and things share the same order?", "relevant_chunk_ids": ["5", "6"]}
+{"query_id": "q032", "query": "whats the connection between feelings, being happy, and being sad in this philosophy", "relevant_chunk_ids": ["7", "8", "9"]}
+{"query_id": "q033", "query": "How do joy and sadness both describe a passage between different degrees of perfection?", "relevant_chunk_ids": ["8", "9"]}
+{"query_id": "q034", "query": "How does acting virtuously relate to what reason demands of us?", "relevant_chunk_ids": ["10", "16"]}
+{"query_id": "q035", "query": "How does virtue connect to the definition of a free thing acting from necessity of its own nature?", "relevant_chunk_ids": ["10", "18"]}
+{"query_id": "q036", "query": "How does the highest kind of knowledge relate to the mind's eternity?", "relevant_chunk_ids": ["11", "14"]}
+{"query_id": "q037", "query": "whats adequate ideas got to do with desire and blind wanting", "relevant_chunk_ids": ["12", "15"]}
+{"query_id": "q038", "query": "If nature has no fixed goal, how can ethics still have a final aim?", "relevant_chunk_ids": ["13", "19"]}
+{"query_id": "q039", "query": "How does the parallel between ideas and things extend to the composition of the human body?", "relevant_chunk_ids": ["6", "17"]}
