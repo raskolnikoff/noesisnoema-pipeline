@@ -430,6 +430,14 @@ tests/fixtures/g3_demo/pack/embeddings.csv
 # *.npy/*.jsonl above; manifest.json is the one file type those miss.
 packs/**/manifest.json
 
+# G3 gate run reports (report preservation policy, Session E2) — must stay
+# committable so 'noema-gate stamp' never pins eval_report_sha256 to a
+# dangling (untracked/lost) file. Explicit allow-list in case a future
+# broader ignore rule (e.g. *.json) would otherwise catch these.
+!reports/
+!reports/g3/
+!reports/g3/**
+
 # TF-IDF sidecar files
 *.tfidf_vocab.json
 *.tfidf_matrix.npz

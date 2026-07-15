@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -51,6 +52,19 @@ def _sha256_file(path: Path) -> str:
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+#: Root under which durable, git-tracked run reports live (spec: report
+#: evidence must be committable, not a pack-local artifact — pack directories
+#: may themselves be untracked/gitignored build output).
+_REPORTS_ROOT = Path("reports") / "g3"
+
+
+def _default_report_path(pack_id: str, now: datetime) -> Path:
+    """``reports/g3/<pack_id>/<UTC-ts>-report.json`` (spec: report preservation)."""
+    ts = now.strftime("%Y%m%dT%H%M%SZ")
+    safe_pack_id = pack_id or "unknown-pack"
+    return _REPORTS_ROOT / safe_pack_id / f"{ts}-report.json"
+
+
 # ---------------------------------------------------------------------------
 # run
 # ---------------------------------------------------------------------------
@@ -71,14 +85,21 @@ def run_gate(
     out_path: Optional[Path] = None,
 ) -> RunResult:
     """
-    Execute the gold-set retrieval evaluation and write report.json.
+    Execute the gold-set retrieval evaluation and write the report.
+
+    With no ``out_path``, the report is written to the durable default
+    ``reports/g3/<pack_id>/<UTC-ts>-report.json`` (parent dirs created as
+    needed) so it can be committed as evidence before a later ``stamp``. An
+    existing file at the resolved path (default or ``out_path``) is never
+    overwritten — a collision refuses rather than silently destroying
+    evidence.
 
     Raises:
         GateRefusalError(exit_code=2): gold-set below the policy's hard
-            floor, or gold-set references chunk ids absent from the pack.
+            floor, gold-set references chunk ids absent from the pack, or
+            the resolved report path already exists.
     """
     pack_dir = Path(pack_dir)
-    out_path = Path(out_path) if out_path is not None else (pack_dir / "report.json")
 
     policy = load_policy(policy_path)
     queries = load_goldset(goldset_path)
@@ -102,9 +123,21 @@ def run_gate(
     harness = RetrievalHarness(pack, embed_query_fn=embed_query_fn)
     recall, per_query = recall_at_k(harness, queries, policy.k)
 
+    now = datetime.now(timezone.utc)
+    pack_id = pack.manifest.get("pack_id", "")
+    resolved_out_path = Path(out_path) if out_path is not None else _default_report_path(pack_id, now)
+
+    if resolved_out_path.exists():
+        raise GateRefusalError(
+            f"report path '{resolved_out_path}' already exists — refusing to "
+            "overwrite existing evidence",
+            exit_code=2,
+        )
+    resolved_out_path.parent.mkdir(parents=True, exist_ok=True)
+
     report = G3Report(
         gate="G3",
-        pack_id=pack.manifest.get("pack_id", ""),
+        pack_id=pack_id,
         policy_sha256=policy_sha256(policy_path),
         goldset_sha256=goldset_sha256(goldset_path),
         k=policy.k,
@@ -113,10 +146,10 @@ def run_gate(
         per_query=[pq.to_dict() for pq in per_query],
         embedder_id=embedder_id,
         normalization=pack.normalization,
-        ran_at=datetime.now(timezone.utc).isoformat(),
+        ran_at=now.isoformat(),
     )
-    write_report(report, out_path)
-    return RunResult(report=report, report_path=out_path, dangling=dangling)
+    write_report(report, resolved_out_path)
+    return RunResult(report=report, report_path=resolved_out_path, dangling=dangling)
 
 
 # ---------------------------------------------------------------------------
@@ -131,11 +164,34 @@ _DEFAULT_LICENSE_CLASS = "internal"
 _DEFAULT_RETENTION = {"policy": "indefinite", "expires_at": None}
 
 
+def _is_git_tracked(path: Path) -> bool:
+    """
+    True iff ``path`` is tracked by the git repository containing it.
+
+    Uses ``git ls-files --error-unmatch`` (exit 0 iff the path is tracked)
+    rather than parsing ``git status`` output, so it works identically for
+    committed-and-unmodified and committed-and-modified files. Any failure to
+    even ask git (binary missing, path outside a repo) is treated as "not
+    tracked" — the conservative default for a durability guarantee.
+    """
+    path = Path(path).resolve()
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(path.parent), "ls-files", "--error-unmatch", "--", str(path)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except (FileNotFoundError, OSError):
+        return False
+    return completed.returncode == 0
+
+
 @dataclass(frozen=True)
 class StampResult:
     manifest: dict
     manifest_path: Path
     forced: bool
+    untracked_report_override: bool = False
 
 
 def stamp_gate(
@@ -144,12 +200,20 @@ def stamp_gate(
     approved_by: str,
     force: bool = False,
     policy_path: Optional[Path] = None,
+    allow_untracked_report: bool = False,
 ) -> StampResult:
     """
     Write ``governance.promotion`` into the pack's manifest, promoting it.
 
+    A hash pointing at a report file that isn't durably preserved (i.e. not
+    committed to git) is a dangling audit reference, so ``stamp`` refuses
+    unless the report is git-tracked. ``allow_untracked_report=True`` bypasses
+    this (e.g. for local dry runs) but the caller must audit it as a distinct
+    override event — see ``StampResult.untracked_report_override``.
+
     Raises:
         GateRefusalError: on any of the documented stamp refusals — report
+            file not git-tracked (unless ``allow_untracked_report``), report
             indicates a failed run, manifest/pack file hash mismatch, policy
             drift (only checked when ``policy_path`` is supplied), or an
             already-promoted pack without ``force=True``.
@@ -158,6 +222,16 @@ def stamp_gate(
     manifest_path = pack_dir / "manifest.json"
     manifest = _load_json(manifest_path)
     report = load_report(report_path)
+
+    report_tracked = _is_git_tracked(report_path)
+    if not report_tracked and not allow_untracked_report:
+        raise GateRefusalError(
+            f"report file '{report_path}' is not tracked by git — a hash "
+            "pinned to an untracked file is a dangling audit reference; "
+            "commit the report before stamping, or pass "
+            "--allow-untracked-report to override (audited as a distinct event)"
+        )
+    untracked_report_override = allow_untracked_report and not report_tracked
 
     if report.get("recall_at_k", 0.0) < report.get("threshold", 1.0):
         raise GateRefusalError(
@@ -229,6 +303,7 @@ def stamp_gate(
         manifest=manifest,
         manifest_path=manifest_path,
         forced=already_promoted and force,
+        untracked_report_override=untracked_report_override,
     )
 
 

@@ -5,8 +5,25 @@ noema-gate — CLI entrypoint for the G3 promotion gate
 Usage
 -----
     noema-gate run   --pack <pack_dir> --goldset <goldset.jsonl> --policy <noema-policy.yaml> [--out <report.json>] [--embedder llama-cpp|llama-server] [--server-url <url>] [--gguf <path>] [--audit-log <log.jsonl>]
-    noema-gate stamp --pack <pack_dir> --report <report.json> --approved-by <id> [--force] [--policy <noema-policy.yaml>] [--audit-log <log.jsonl>]
+    noema-gate stamp --pack <pack_dir> --report <report.json> --approved-by <id> [--force] [--policy <noema-policy.yaml>] [--allow-untracked-report] [--audit-log <log.jsonl>]
     noema-gate verify --pack <pack_dir>
+
+``run`` report preservation (report durability, Session E2)
+-------------------------------------------------------------
+With no ``--out``, ``run`` writes the report to the durable default
+``reports/g3/<pack_id>/<UTC-ts>-report.json`` (parent dirs created as
+needed) rather than into the (often gitignored) pack directory, and refuses
+to overwrite an existing file at the resolved path — a hash pinned into a
+manifest by ``stamp`` must never point at evidence that can silently vanish
+or be clobbered.
+
+``stamp`` refuses on an untracked report (Session E2)
+---------------------------------------------------------
+Before writing the promotion block, ``stamp`` verifies the ``--report`` file
+is tracked by git. An untracked report is a dangling audit reference in
+waiting — refused unless ``--allow-untracked-report`` is passed, which is
+itself audited as a distinct event (``gate.stamp`` with
+``detail.override = "untracked_report"``).
 
 ``stamp --policy`` is an additive extension beyond the spec's minimal CLI
 table: it is the only way to detect "policy edited between run and stamp"
@@ -228,6 +245,15 @@ def stamp(
         "--policy",
         help="noema-policy.yaml used for 'run'; if given, refuses on policy_sha256 drift.",
     ),
+    allow_untracked_report: bool = typer.Option(
+        False,
+        "--allow-untracked-report",
+        help=(
+            "Allow stamping when --report is not tracked by git (refused by "
+            "default — an untracked report is a dangling audit reference). "
+            "Audited as a distinct override event."
+        ),
+    ),
     audit_log: Optional[Path] = typer.Option(
         None, "--audit-log", help="Optional audit log to append gate.stamp event(s) to."
     ),
@@ -240,6 +266,7 @@ def stamp(
             approved_by=approved_by,
             force=force,
             policy_path=policy,
+            allow_untracked_report=allow_untracked_report,
         )
     except GateRefusalError as exc:
         typer.echo(f"REFUSED: {exc}", err=True)
@@ -249,19 +276,25 @@ def stamp(
         emitter = AuditEmitter(audit_log)
         promotion = result.manifest["governance"]["promotion"]
         if result.forced:
+            detail = {"forced": "true", "previous_status": "promoted"}
+            if result.untracked_report_override:
+                detail["override"] = "untracked_report"
             emitter.emit(
                 plane="knowledge",
                 actor=f"human:{approved_by}",
                 action="gate.stamp.forced",
-                detail={"forced": "true", "previous_status": "promoted"},
+                detail=detail,
             )
         else:
+            detail = {"approved_by": approved_by, "gate": "G3"}
+            if result.untracked_report_override:
+                detail["override"] = "untracked_report"
             emitter.emit(
                 plane="knowledge",
                 actor=f"human:{approved_by}",
                 action="gate.stamp",
                 inputs={"sha256_refs": [promotion["eval_report_sha256"]]},
-                detail={"approved_by": approved_by, "gate": "G3"},
+                detail=detail,
             )
 
     typer.echo(f"Pack promoted. manifest updated at: {result.manifest_path}")

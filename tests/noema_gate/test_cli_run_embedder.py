@@ -53,6 +53,7 @@ def test_run_llama_server_emits_gate_run_audit_event(tmp_path, monkeypatch):
             "--policy", str(policy_path),
             "--embedder", "llama-server",
             "--server-url", "http://localhost:9999",
+            "--out", str(tmp_path / "report.json"),
             "--audit-log", str(audit_log),
         ],
     )
@@ -101,6 +102,7 @@ def test_run_llama_server_with_gguf_records_model_hash(tmp_path, monkeypatch):
             "--policy", str(policy_path),
             "--embedder", "llama-server",
             "--gguf", str(fake_gguf),
+            "--out", str(tmp_path / "report.json"),
             "--audit-log", str(audit_log),
         ],
     )
