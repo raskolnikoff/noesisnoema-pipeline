@@ -42,19 +42,25 @@ def test_demo_fixture_run_stamp_verify(demo_pack_dir):
     def embed_query(q):
         return embedder.embed_texts([q])[0]
 
+    # Explicit out_path keeps this test isolated from the report-preservation
+    # default (reports/g3/<pack_id>/<UTC-ts>-report.json under the repo root,
+    # exercised separately in test_report_preservation.py).
     result = run_gate(
         pack_dir=demo_pack_dir,
         goldset_path=goldset_path,
         policy_path=policy_path,
         embed_query_fn=embed_query,
         embedder_id=embedder.metadata.embedding_model,
+        out_path=demo_pack_dir / "report.json",
     )
 
     assert len(result.report.per_query) == 30
     assert result.dangling == {}
     assert result.report.recall_at_k >= result.report.threshold  # demo policy calibrated to pass
 
-    stamp_result = stamp_gate(demo_pack_dir, result.report_path, approved_by="taka")
+    stamp_result = stamp_gate(
+        demo_pack_dir, result.report_path, approved_by="taka", allow_untracked_report=True
+    )
     assert stamp_result.manifest["governance"]["promotion"]["status"] == "promoted"
 
     verify_result = verify_gate(demo_pack_dir)

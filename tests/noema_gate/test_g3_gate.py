@@ -12,6 +12,7 @@ documented failure modes (spec-g3-promotion-gate.md "Failure modes to test"):
 
 import os
 import sys
+from pathlib import Path
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -24,13 +25,19 @@ from noema_gate.report import load_report
 from .conftest import fake_embed_query, make_pack, write_goldset, write_policy
 
 
-def _run(pack_dir, goldset_path, policy_path, dim=8, seed_offset=0):
+def _run(pack_dir, goldset_path, policy_path, dim=8, seed_offset=0, out_path=None):
+    # Explicit out_path (isolated under pack_dir, itself under tmp_path) keeps
+    # these tests independent of the report-preservation default
+    # (reports/g3/<pack_id>/<UTC-ts>-report.json, exercised separately in
+    # test_report_preservation.py) and avoids same-second filename collisions
+    # across the many tests in this module that share pack_id "pack-demo".
     return run_gate(
         pack_dir=pack_dir,
         goldset_path=goldset_path,
         policy_path=policy_path,
         embed_query_fn=fake_embed_query(dim, seed_offset=seed_offset),
         embedder_id="fake-embed",
+        out_path=out_path if out_path is not None else (Path(pack_dir) / "report.json"),
     )
 
 
@@ -43,7 +50,7 @@ def test_happy_path_run_stamp_verify(pack_dir, goldset_path, policy_path):
     assert result.report.gate == "G3"
     assert result.dangling == {}
 
-    stamp_result = stamp_gate(pack_dir, result.report_path, approved_by="taka")
+    stamp_result = stamp_gate(pack_dir, result.report_path, approved_by="taka", allow_untracked_report=True)
     assert stamp_result.manifest["governance"]["promotion"]["status"] == "promoted"
     assert stamp_result.forced is False
 
@@ -95,7 +102,7 @@ def test_stamp_refuses_on_hash_mismatch(pack_dir, goldset_path, policy_path):
     (pack_dir / "chunks.json").write_text('["tampered", "tampered"]')
 
     with pytest.raises(GateRefusalError) as exc_info:
-        stamp_gate(pack_dir, result.report_path, approved_by="taka")
+        stamp_gate(pack_dir, result.report_path, approved_by="taka", allow_untracked_report=True)
     assert "chunks_sha256" in str(exc_info.value)
 
 
@@ -110,14 +117,14 @@ def test_stamp_refuses_on_policy_drift(pack_dir, goldset_path, policy_path):
     write_policy(policy_path, threshold="0.5", hard_floor=10)
 
     with pytest.raises(GateRefusalError) as exc_info:
-        stamp_gate(pack_dir, result.report_path, approved_by="taka", policy_path=policy_path)
+        stamp_gate(pack_dir, result.report_path, approved_by="taka", policy_path=policy_path, allow_untracked_report=True)
     assert "policy" in str(exc_info.value).lower()
 
 
 def test_stamp_without_policy_path_skips_drift_check(pack_dir, goldset_path, policy_path):
     result = _run(pack_dir, goldset_path, policy_path)
     write_policy(policy_path, threshold="0.5", hard_floor=10)  # edited, but not passed to stamp
-    stamp_gate(pack_dir, result.report_path, approved_by="taka")  # must not raise
+    stamp_gate(pack_dir, result.report_path, approved_by="taka", allow_untracked_report=True)  # must not raise
 
 
 # ---------------------------------------------------------------------------
@@ -126,19 +133,19 @@ def test_stamp_without_policy_path_skips_drift_check(pack_dir, goldset_path, pol
 
 def test_stamp_refuses_restamp_without_force(pack_dir, goldset_path, policy_path):
     result = _run(pack_dir, goldset_path, policy_path)
-    stamp_gate(pack_dir, result.report_path, approved_by="taka")
+    stamp_gate(pack_dir, result.report_path, approved_by="taka", allow_untracked_report=True)
 
     with pytest.raises(GateRefusalError) as exc_info:
-        stamp_gate(pack_dir, result.report_path, approved_by="max")
+        stamp_gate(pack_dir, result.report_path, approved_by="max", allow_untracked_report=True)
     assert "force" in str(exc_info.value).lower()
 
 
 def test_stamp_force_allows_restamp_and_marks_forced(pack_dir, goldset_path, policy_path):
     result = _run(pack_dir, goldset_path, policy_path)
-    first = stamp_gate(pack_dir, result.report_path, approved_by="taka")
+    first = stamp_gate(pack_dir, result.report_path, approved_by="taka", allow_untracked_report=True)
     assert first.forced is False
 
-    second = stamp_gate(pack_dir, result.report_path, approved_by="max", force=True)
+    second = stamp_gate(pack_dir, result.report_path, approved_by="max", force=True, allow_untracked_report=True)
     assert second.forced is True
     assert second.manifest["governance"]["promotion"]["approved_by"] == "max"
 
@@ -154,7 +161,7 @@ def test_stamp_refuses_on_failed_report(pack_dir, goldset_path, tmp_path):
     assert result.report.passed is False
 
     with pytest.raises(GateRefusalError) as exc_info:
-        stamp_gate(pack_dir, result.report_path, approved_by="taka")
+        stamp_gate(pack_dir, result.report_path, approved_by="taka", allow_untracked_report=True)
     assert "failed run" in str(exc_info.value)
 
 
@@ -164,7 +171,7 @@ def test_stamp_refuses_on_failed_report(pack_dir, goldset_path, tmp_path):
 
 def test_verify_fails_after_tampering_post_promotion(pack_dir, goldset_path, policy_path):
     result = _run(pack_dir, goldset_path, policy_path)
-    stamp_gate(pack_dir, result.report_path, approved_by="taka")
+    stamp_gate(pack_dir, result.report_path, approved_by="taka", allow_untracked_report=True)
 
     (pack_dir / "chunks.json").write_text('["tampered"]')
     verify_result = verify_gate(pack_dir)
