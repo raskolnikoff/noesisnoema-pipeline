@@ -1,0 +1,214 @@
+{
+  "gate": "G3",
+  "pack_id": "pack-g3-demo-nomic",
+  "policy_sha256": "077b4d43de227775d5f84d6c5d85432c421ee53d5fbdbf27d2c219e94657463f",
+  "goldset_sha256": "e8056b1dd0f190e986caea262b87182d7edca1d44c110a494a29e9aa3fcf95a2",
+  "k": 5,
+  "threshold": 0.6,
+  "recall_at_k": 1.0,
+  "per_query": [
+    {
+      "query_id": "q000",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q001",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q002",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q003",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q004",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q005",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q006",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q007",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q008",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q009",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q010",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q011",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q012",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q013",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q014",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q015",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q016",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q017",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q018",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q019",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q020",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q021",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q022",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q023",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q024",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q025",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q026",
+      "hit": 1,
+      "relevant": 1
+    },
+    {
+      "query_id": "q027",
+      "hit": 2,
+      "relevant": 2
+    },
+    {
+      "query_id": "q028",
+      "hit": 2,
+      "relevant": 2
+    },
+    {
+      "query_id": "q029",
+      "hit": 2,
+      "relevant": 2
+    },
+    {
+      "query_id": "q030",
+      "hit": 2,
+      "relevant": 2
+    },
+    {
+      "query_id": "q031",
+      "hit": 2,
+      "relevant": 2
+    },
+    {
+      "query_id": "q032",
+      "hit": 3,
+      "relevant": 3
+    },
+    {
+      "query_id": "q033",
+      "hit": 2,
+      "relevant": 2
+    },
+    {
+      "query_id": "q034",
+      "hit": 2,
+      "relevant": 2
+    },
+    {
+      "query_id": "q035",
+      "hit": 2,
+      "relevant": 2
+    },
+    {
+      "query_id": "q036",
+      "hit": 2,
+      "relevant": 2
+    },
+    {
+      "query_id": "q037",
+      "hit": 2,
+      "relevant": 2
+    },
+    {
+      "query_id": "q038",
+      "hit": 2,
+      "relevant": 2
+    },
+    {
+      "query_id": "q039",
+      "hit": 2,
+      "relevant": 2
+    }
+  ],
+  "embedder_id": "nomic-embed-text-v1.5.Q5_K_M.gguf",
+  "normalization": "mean_center",
+  "ran_at": "2026-07-12T09:13:59.891329+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "reviewed_by": "taka",
+  "review_date": "2026-07-12",
+  "source_pack_id": "pack-g3-demo",
+  "source_pack_manifest_sha256": "8662f0e0cd2e37f89a4b858bcc930098fbc80814086bc679a31ee55e6f59728c",
+  "counts": {
+    "drafted": 40,
+    "approved": 40,
+    "edited": 0,
+    "dropped": 0
+  }
+}
